@@ -1,0 +1,5 @@
+# Run these commands to add the required dependencies for email integration
+
+go get github.com/emersion/go-imap
+go get github.com/emersion/go-message
+go get github.com/joho/godotenv
