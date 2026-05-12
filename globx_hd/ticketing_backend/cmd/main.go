@@ -21,15 +21,15 @@ import (
 
 func main() {
 
-	cfg := config.LoadConfigFromEnvOrDefault()
-
-	// Load email configuration early so all handlers can send email notifications
+	// Load .env.email FIRST so DATABASE_URL is available
 	if err := godotenv.Load(".env.email"); err != nil {
 		log.Printf("⚠️  Warning: Could not load .env.email file: %v", err)
-		log.Println("Email notifications will be disabled unless EMAIL_USERNAME and EMAIL_PASSWORD are set")
+		log.Println("Using default configuration or environment variables")
 	} else {
-		log.Println("✅ Email configuration loaded successfully")
+		log.Println("✅ Configuration loaded from .env.email")
 	}
+
+	cfg := config.LoadConfigFromEnvOrDefault()
 
 	if err := config.ConnectDatabase(cfg.DatabaseURL); err != nil {
 		log.Fatalf("db connect error: %v", err)

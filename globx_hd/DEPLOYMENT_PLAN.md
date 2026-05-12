@@ -374,6 +374,7 @@ go mod download
 
 # Build the binary
 go build -o globx-backend ./cmd/main.go
+
 ```
 
 ### Step 7: Create Upload Directory
