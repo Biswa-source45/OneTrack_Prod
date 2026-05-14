@@ -54,7 +54,7 @@
         <button
           type="submit"
           :disabled="submitting || (!hideStatusDropdown && !form.status) || !form.remarks.trim()"
-          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          class="px-4 py-2 bg-gradient-to-r from-brand-teal to-brand-cyan text-white rounded-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
           {{ submitting ? 'Processing...' : (hideStatusDropdown ? 'Submit' : 'Change Status') }}
         </button>
@@ -159,10 +159,10 @@ const handleSubmit = async () => {
 // Status badge styling function
 const getStatusBadgeClass = (status) => {
   switch (status) {
-    case 'OPEN': return 'bg-blue-100 text-blue-800'
-    case 'IN PROGRESS': return 'bg-yellow-100 text-yellow-800'
-    case 'RESOLVED': return 'bg-green-100 text-green-800'
-    case 'CLOSED': return 'bg-gray-100 text-gray-800'
+    case 'OPEN': return 'bg-brand-teal text-white shadow-sm'
+    case 'IN PROGRESS': return 'bg-brand-cyan text-white shadow-sm'
+    case 'RESOLVED': return 'bg-emerald-500 text-white shadow-sm'
+    case 'CLOSED': return 'bg-gray-500 text-white shadow-sm'
     default: return 'bg-gray-100 text-gray-800'
   }
 };

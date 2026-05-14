@@ -1,6 +1,6 @@
 <template>
   <div class="p-6 bg-white rounded-lg shadow-md max-w-7xl mx-auto mt-8">
-    <h1 class="text-2xl font-bold text-blue-800 mb-6">All Tasks</h1>
+    <h1 class="text-2xl font-bold text-neutral-dark mb-6">All Tasks</h1>
     <div v-if="showSuccess" class="text-green-600 mt-2 text-center font-semibold">
       {{ successMessage }}
     </div>
@@ -15,7 +15,7 @@
         <div class="p-4">
           <div class="mb-3">
             <div class="flex-1 min-w-0">
-              <h3 class="text-lg font-semibold text-blue-900 truncate">
+              <h3 class="text-lg font-semibold text-neutral-dark truncate">
                 {{ task.subject || 'No Subject' }}
               </h3>
             </div>
@@ -23,18 +23,18 @@
           
           <div class="flex flex-wrap items-center justify-between gap-2">
             <!-- Left side: Task details in a single line -->
-            <div class="flex flex-wrap items-center gap-1 text-sm text-blue-900">
+            <div class="flex flex-wrap items-center gap-1 text-sm text-neutral-dark">
               <!-- Created By -->
               <span>{{ getCreatorName(task) }}</span>
-              <span class="text-blue-400">•</span>
+              <span class="text-brand-teal">•</span>
               
               <!-- Assigned To -->
               <span>{{ getAssignedUserName(task) }}</span>
-              <span class="text-blue-400">•</span>
+              <span class="text-brand-teal">•</span>
               
               <!-- Due Date -->
               <span>{{ formatDueDate(task.due_date) }}</span>
-              <span class="text-blue-400">•</span>
+              <span class="text-brand-teal">•</span>
               
               <!-- Date Created -->
               <span>{{ formatDate(task.created_at) }}</span>
@@ -71,22 +71,22 @@
       
       <!-- Empty State -->
       <div v-if="!tasks.length" class="text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg class="mx-auto h-12 w-12 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-blue-900">No tasks found</h3>
-        <p class="mt-1 text-sm text-blue-500">Get started by creating a new task.</p>
+        <h3 class="mt-2 text-sm font-medium text-neutral-dark">No tasks found</h3>
+        <p class="mt-1 text-sm text-neutral-medium">Get started by creating a new task.</p>
       </div>
     </div>
 
     <!-- Edit Details Modal -->
     <Modal :open="showEdit" title="Edit Task Details" @close="closeEdit">
       <div class="mb-3">
-        <label class="block mb-1 text-blue-800 font-medium">Subject</label>
+        <label class="block mb-1 text-neutral-dark font-medium">Subject</label>
         <input v-model="editForm.subject" type="text" class="w-full border rounded px-3 py-2" />
       </div>
       <div class="mb-3">
-        <label class="block mb-1 text-blue-800 font-medium">Priority</label>
+        <label class="block mb-1 text-neutral-dark font-medium">Priority</label>
         <select v-model="editForm.priority" class="w-full border rounded px-3 py-2">
           <option value="High">High</option>
           <option value="Medium">Medium</option>
@@ -94,11 +94,11 @@
         </select>
       </div>
       <div class="mb-3">
-        <label class="block mb-1 text-blue-800 font-medium">Due Date</label>
+        <label class="block mb-1 text-neutral-dark font-medium">Due Date</label>
         <input v-model="editForm.due_date" type="date" class="w-full border rounded px-3 py-2" />
       </div>
       <div class="mb-3">
-        <label class="block mb-1 text-blue-800 font-medium">Description</label>
+        <label class="block mb-1 text-neutral-dark font-medium">Description</label>
         <textarea v-model="editForm.description" rows="3" class="w-full border rounded px-3 py-2"></textarea>
       </div>
       <div class="flex gap-2 justify-end">
@@ -111,7 +111,7 @@
     <!-- Assign User Modal -->
     <Modal :open="showAssign" @close="closeAssign">
       <div class="p-4 w-full max-w-md">
-        <h2 class="text-lg font-semibold text-blue-800 mb-2">Assign Task</h2>
+        <h2 class="text-lg font-semibold text-neutral-dark mb-2">Assign Task</h2>
         <select v-model="selectedUser" class="w-full border rounded px-3 py-2 mb-4">
           <option value="">Unassigned</option>
           <option v-for="user in users" :key="user.id" :value="String(user.id)">
@@ -129,7 +129,7 @@
     <!-- Change Status Modal -->
     <Modal :open="showStatus" @close="closeStatus">
       <div class="p-4 w-full max-w-md">
-        <h2 class="text-lg font-semibold text-blue-800 mb-2">Change Task Status</h2>
+        <h2 class="text-lg font-semibold text-neutral-dark mb-2">Change Task Status</h2>
         <select v-model="selectedStatus" class="w-full border rounded px-3 py-2 mb-4">
           <option disabled value="">Please select status</option>
           <option v-for="status in statusOptions" :key="status" :value="status">{{ status }}</option>
@@ -376,22 +376,22 @@ async function deleteTaskFromList() {
 // Utility functions
 function getStatusBadgeClass(status) {
   switch (status) {
-    case 'Not Started': return 'bg-gray-100 text-gray-800';
-    case 'In Progress': return 'bg-blue-100 text-blue-800';
-    case 'Completed': return 'bg-green-100 text-green-800';
-    case 'Deferred': return 'bg-yellow-100 text-yellow-800';
-    case 'Waiting on someone else': return 'bg-purple-100 text-purple-800';
-    case 'Canceled': return 'bg-red-100 text-red-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'Not Started': return 'bg-gray-400 text-white shadow-sm';
+    case 'In Progress': return 'bg-brand-cyan text-white shadow-sm';
+    case 'Completed': return 'bg-emerald-500 text-white shadow-sm';
+    case 'Deferred': return 'bg-amber-500 text-white shadow-sm';
+    case 'Waiting on someone else': return 'bg-purple-500 text-white shadow-sm';
+    case 'Canceled': return 'bg-red-500 text-white shadow-sm';
+    default: return 'bg-gray-400 text-white shadow-sm';
   }
 }
 
 function getPriorityBadgeClass(priority) {
   switch (priority) {
-    case 'High': return 'bg-red-100 text-red-800';
-    case 'Medium': return 'bg-yellow-100 text-yellow-800';
-    case 'Low': return 'bg-green-100 text-green-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'High': return 'bg-orange-500 text-white shadow-sm';
+    case 'Medium': return 'bg-amber-500 text-white shadow-sm';
+    case 'Low': return 'bg-gray-400 text-white shadow-sm';
+    default: return 'bg-gray-400 text-white shadow-sm';
   }
 }
 

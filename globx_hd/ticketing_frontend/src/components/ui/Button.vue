@@ -1,7 +1,7 @@
 <template>
   <button
     :class="[
-      'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
+      'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
       sizeClasses,
       variantClasses
     ]"
@@ -25,11 +25,11 @@ const sizeClasses = computed(() => {
 const variantClasses = computed(() => {
   switch (props.variant) {
     case 'secondary':
-      return 'bg-white text-blue-800 border border-blue-200 hover:bg-blue-50';
+      return 'bg-white text-brand-teal border border-teal-200 hover:bg-teal-50 hover:shadow-md';
     case 'danger':
-      return 'bg-red-600 text-white hover:bg-red-700';
+      return 'bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg hover:-translate-y-0.5';
     default:
-      return 'bg-blue-600 text-white hover:bg-blue-700';
+      return 'bg-gradient-to-r from-brand-teal to-brand-cyan text-white shadow-md hover:shadow-lg hover:-translate-y-0.5';
   }
 });
 </script>

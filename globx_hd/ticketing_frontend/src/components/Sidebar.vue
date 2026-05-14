@@ -1,28 +1,28 @@
 <template>
-  <aside :class="['bg-white min-h-full flex flex-col transition-all duration-300 overflow-hidden', sidebarOpen ? 'w-64 px-4 py-6 shadow-lg' : 'w-0 px-0 py-0 shadow-none']" aria-hidden="false">
+  <aside :class="['bg-neutral-light min-h-full flex flex-col transition-all duration-300 overflow-hidden', sidebarOpen ? 'w-64 px-4 py-6 shadow-lg' : 'w-0 px-0 py-0 shadow-none']" aria-hidden="false">
     <nav class="flex flex-col h-full">
       <ul class="flex-1">
         <li v-for="item in navLinks" :key="item.path || item.label" class="mb-1">
-          <router-link v-if="!item.children" :to="item.path" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-blue-100 text-blue-800 font-medium">
+          <router-link v-if="!item.children" :to="item.path" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-teal-50 text-neutral-dark font-medium transition-all duration-200 backdrop-blur-sm" active-class="bg-brand-teal text-white border-l-4 border-teal-700">
             <span class="w-5 h-5 flex items-center justify-center">
-              <component v-if="item.icon" :is="item.icon" class="w-5 h-5 text-blue-700" />
+              <component v-if="item.icon" :is="item.icon" class="w-5 h-5" :class="$route.path === item.path ? 'text-white' : 'text-brand-teal'" />
             </span>
             <span class="truncate">{{ item.label }}</span>
           </router-link>
           <div v-else class="w-full">
-            <button @click="toggleMasterData" class="w-full flex items-center justify-between px-3 py-2 rounded hover:bg-blue-100 text-blue-800 font-medium">
+            <button @click="toggleMasterData" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-teal-50 text-neutral-dark font-medium transition-all duration-200">
               <span class="flex items-center gap-2">
                 <span class="w-5 h-5 flex items-center justify-center">
-                  <component v-if="item.icon" :is="item.icon" class="w-5 h-5 text-blue-700" />
+                  <component v-if="item.icon" :is="item.icon" class="w-5 h-5 text-brand-teal" />
                 </span>
                 <span class="truncate">{{ item.label }}</span>
               </span>
-              <svg :class="['transition-transform w-4 h-4 text-blue-700', masterDataOpen ? 'rotate-180' : 'rotate-0']" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+              <svg :class="['transition-transform w-4 h-4 text-brand-teal', masterDataOpen ? 'rotate-180' : 'rotate-0']" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </button>
             <transition name="fade">
               <ul v-if="masterDataOpen" class="ml-7 mt-1">
                 <li v-for="sub in item.children" :key="sub.path" class="mb-1">
-                  <router-link :to="sub.path" class="block px-3 py-2 rounded hover:bg-blue-100 text-blue-700 font-medium">
+                  <router-link :to="sub.path" class="block px-3 py-2 rounded-lg hover:bg-teal-50 text-neutral-dark font-medium transition-all duration-200" active-class="bg-teal-100 text-brand-teal">
                     {{ sub.label }}
                   </router-link>
                 </li>

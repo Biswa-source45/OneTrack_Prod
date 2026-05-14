@@ -1,11 +1,11 @@
 <template>
   <div class="p-6 bg-white rounded-lg shadow-md max-w-7xl mx-auto mt-8">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-blue-800">{{ pageTitle }}</h1>
+      <h1 class="text-2xl font-bold text-neutral-dark">{{ pageTitle }}</h1>
       <button 
         v-if="statusFilter" 
         @click="clearFilter" 
-        class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        class="px-4 py-2 text-sm bg-gradient-to-r from-brand-teal to-brand-cyan text-white rounded-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
       >
         Clear Filter
       </button>
@@ -16,14 +16,14 @@
     <!-- Tickets Card Layout -->
     <div class="space-y-4">
       <div v-for="ticket in filteredTickets" :key="ticket.id" 
-           class="bg-white border border-blue-100 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
+           class="bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer"
            @click="openDetail(ticket)">
         
         <!-- Card Content -->
         <div class="p-4">
           <div class="mb-3">
             <div class="flex-1 min-w-0">
-              <h3 class="text-lg font-semibold text-blue-900 truncate">
+              <h3 class="text-lg font-semibold text-neutral-dark truncate">
                 {{ ticket.subject || 'No Subject' }}
               </h3>
             </div>
@@ -31,18 +31,18 @@
           
           <div class="flex flex-wrap items-center justify-between gap-2">
             <!-- Left side: Ticket details in a single line -->
-            <div class="flex flex-wrap items-center gap-1 text-sm text-blue-900">
+            <div class="flex flex-wrap items-center gap-1 text-sm text-neutral-dark">
               <!-- Ticket ID -->
               <span class="font-mono">{{ ticket.ticket_id }}</span>
-              <span class="text-blue-400">•</span>
+              <span class="text-brand-teal">•</span>
               
               <!-- Contact Name -->
               <span>{{ ticket.contact ? `${ticket.contact.first_name} ${ticket.contact.last_name}` : 'Unknown Contact' }}</span>
-              <span class="text-blue-400">•</span>
+              <span class="text-brand-teal">•</span>
               
               <!-- Account Name -->
               <span>{{ ticket.contact?.account?.account_name || ticket.account?.account_name || 'Unknown Account' }}</span>
-              <span class="text-blue-400">•</span>
+              <span class="text-brand-teal">•</span>
               
               <!-- Date Raised -->
               <span>{{ formatDate(ticket.created_at) }}</span>
@@ -79,23 +79,23 @@
       
       <!-- Empty State -->
       <div v-if="!filteredTickets.length" class="text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg class="mx-auto h-12 w-12 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-blue-900">No tickets found</h3>
-        <p class="mt-1 text-sm text-blue-500">Get started by creating a new ticket.</p>
+        <h3 class="mt-2 text-sm font-medium text-neutral-dark">No tickets found</h3>
+        <p class="mt-1 text-sm text-neutral-medium">Get started by creating a new ticket.</p>
       </div>
     </div>
     <!-- Edit Details Modal -->
     <Modal :open="showEdit" title="Edit Ticket Details" @close="closeEdit">
       <div class="mb-3">
-        <label class="block mb-1 text-blue-800 font-medium">Product</label>
+        <label class="block mb-1 text-neutral-dark font-medium">Product</label>
         <select v-model="editForm.product_id" class="w-full border rounded px-3 py-2">
           <option v-for="prod in products" :key="prod.id" :value="String(prod.id)">{{ prod.product_name }}</option>
         </select>
       </div>
       <div class="mb-3">
-        <label class="block mb-1 text-blue-800 font-medium">Subject</label>
+        <label class="block mb-1 text-neutral-dark font-medium">Subject</label>
         <input v-model="editForm.subject" type="text" class="w-full border rounded px-3 py-2" />
       </div>
       <div class="mb-3">
@@ -260,24 +260,24 @@ function priorityClass(priority) {
 
 function getStatusBadgeClass(status) {
   switch (status) {
-    case 'OPEN': return 'bg-blue-100 text-blue-800';
-    case 'MEETING LOCKED IN WITH OEM': return 'bg-indigo-100 text-indigo-800';
-    case 'PARTS ORDERED': return 'bg-purple-100 text-purple-800';
-    case 'IN_PROGRESS': return 'bg-yellow-100 text-yellow-800';
-    case 'RESOLVED': return 'bg-green-100 text-green-800';
-    case 'CLOSED': return 'bg-gray-100 text-gray-800';
-    case 'ON HOLD': return 'bg-orange-100 text-orange-800';
-    case 'ESCALATED': return 'bg-red-100 text-red-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'OPEN': return 'bg-brand-teal text-white shadow-sm';
+    case 'MEETING LOCKED IN WITH OEM': return 'bg-indigo-500 text-white shadow-sm';
+    case 'PARTS ORDERED': return 'bg-purple-500 text-white shadow-sm';
+    case 'IN_PROGRESS': return 'bg-brand-cyan text-white shadow-sm';
+    case 'RESOLVED': return 'bg-emerald-500 text-white shadow-sm';
+    case 'CLOSED': return 'bg-gray-500 text-white shadow-sm';
+    case 'ON HOLD': return 'bg-amber-500 text-white shadow-sm';
+    case 'ESCALATED': return 'bg-red-500 text-white shadow-sm';
+    default: return 'bg-gray-400 text-white shadow-sm';
   }
 }
 
 function getPriorityBadgeClass(priority) {
   switch (priority) {
-    case 'High': return 'bg-red-100 text-red-800';
-    case 'Medium': return 'bg-yellow-100 text-yellow-800';
-    case 'Low': return 'bg-green-100 text-green-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'High': return 'bg-orange-500 text-white shadow-sm';
+    case 'Medium': return 'bg-amber-500 text-white shadow-sm';
+    case 'Low': return 'bg-gray-400 text-white shadow-sm';
+    default: return 'bg-gray-400 text-white shadow-sm';
   }
 }
 

@@ -1,20 +1,20 @@
 <template>
-  <div class="bg-white rounded-lg shadow-sm border border-blue-100 overflow-hidden">
+  <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-blue-100">
-        <thead class="bg-blue-50">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gradient-to-r from-neutral-light to-white">
           <tr>
-            <th v-for="col in columns" :key="col.key" class="px-4 py-3 text-left text-xs font-semibold text-blue-800 uppercase tracking-wider whitespace-nowrap">
+            <th v-for="col in columns" :key="col.key" class="px-4 py-3 text-left text-xs font-semibold text-neutral-dark uppercase tracking-wider whitespace-nowrap">
               {{ col.label }}
             </th>
-            <th class="px-4 py-3 text-right text-xs font-semibold text-blue-800 uppercase tracking-wider">Actions</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold text-neutral-dark uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-blue-50">
+        <tbody class="divide-y divide-gray-100">
           <tr v-for="row in pagedRows" :key="row[rowKey]"
-              :class="[rowClickable ? 'cursor-pointer transition hover:bg-blue-100' : 'hover:bg-blue-50/50']"
+              :class="[rowClickable ? 'cursor-pointer transition-all duration-200 hover:bg-teal-50' : 'hover:bg-gray-50 transition-all duration-200']"
               @click="rowClickable ? $emit('row-click', row) : null">
-            <td v-for="col in columns" :key="col.key" class="px-4 py-3 text-sm text-blue-900">
+            <td v-for="col in columns" :key="col.key" class="px-4 py-3 text-sm text-neutral-dark">
               <slot :name="`cell:${col.key}`" :row="row">{{ row[col.key] }}</slot>
             </td>
             <td class="px-4 py-3 text-right">
@@ -22,7 +22,7 @@
             </td>
           </tr>
           <tr v-if="!rows.length">
-            <td :colspan="columns.length + 1" class="px-4 py-10 text-center text-blue-700">No data</td>
+            <td :colspan="columns.length + 1" class="px-4 py-10 text-center text-neutral-medium">No data</td>
           </tr>
         </tbody>
       </table>

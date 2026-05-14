@@ -1,11 +1,11 @@
 <template>
   <div class="p-8">
-    <h1 class="text-3xl font-bold text-blue-800 mb-8">Manager Dashboard</h1>
+    <h1 class="text-3xl font-bold text-neutral-dark mb-8">Manager Dashboard</h1>
     
     <!-- Month Filter -->
     <div class="mb-8">
-      <div class="bg-white rounded-lg shadow-md border border-blue-100 p-6">
-        <h2 class="text-lg font-semibold text-blue-800 mb-4">Filter by Month</h2>
+      <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-neutral-dark mb-4">Filter by Month</h2>
         <div class="flex gap-4 items-center">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Month</label>
@@ -35,7 +35,7 @@
           <div class="mt-6">
             <button 
               @click="clearFilter"
-              class="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+              class="px-4 py-2 text-sm text-brand-teal hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-all duration-200"
             >
               Clear Filter
             </button>
@@ -47,15 +47,15 @@
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
       <!-- Total Tickets -->
-      <div @click="navigateToTickets()" class="bg-white rounded-lg shadow-md border border-blue-100 p-6 cursor-pointer hover:shadow-lg hover:border-blue-300 transition-all duration-200">
+      <div @click="navigateToTickets()" class="bg-white rounded-lg shadow-md border border-gray-200 p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 hover:border-brand-teal transition-all duration-300">
         <div class="flex items-center gap-3">
-          <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-brand-teal to-brand-cyan">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
             </svg>
           </span>
           <div>
-            <div class="text-2xl font-bold text-blue-800">{{ stats.total_tickets || 0 }}</div>
+            <div class="text-2xl font-bold text-neutral-dark">{{ stats.total_tickets || 0 }}</div>
             <div class="text-sm text-gray-600">Total Tickets</div>
           </div>
         </div>
@@ -123,26 +123,26 @@
     </div>
 
     <!-- Quick Access Links -->
-    <div class="bg-white rounded-lg shadow-md border border-blue-100 p-6">
-      <h2 class="text-lg font-semibold text-blue-800 mb-4">Quick Access</h2>
+    <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-neutral-dark mb-4">Quick Access</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <router-link to="/manager/tickets" class="flex items-center gap-3 p-4 rounded-lg hover:bg-blue-50 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <router-link to="/manager/tickets" class="flex items-center gap-3 p-4 rounded-lg hover:bg-teal-50 transition-all duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
           </svg>
-          <span class="font-medium text-blue-800">Manage Tickets</span>
+          <span class="font-medium text-neutral-dark">Manage Tickets</span>
         </router-link>
-        <router-link to="/manager/tasks" class="flex items-center gap-3 p-4 rounded-lg hover:bg-blue-50 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <router-link to="/manager/tasks" class="flex items-center gap-3 p-4 rounded-lg hover:bg-teal-50 transition-all duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
           </svg>
-          <span class="font-medium text-blue-800">Manage Tasks</span>
+          <span class="font-medium text-neutral-dark">Manage Tasks</span>
         </router-link>
-        <router-link to="/manager/engineers" class="flex items-center gap-3 p-4 rounded-lg hover:bg-blue-50 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <router-link to="/manager/engineers" class="flex items-center gap-3 p-4 rounded-lg hover:bg-teal-50 transition-all duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-3.13a4 4 0 11-8 0 4 4 0 018 0zm6 0a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
-          <span class="font-medium text-blue-800">Manage Engineers</span>
+          <span class="font-medium text-neutral-dark">Manage Engineers</span>
         </router-link>
       </div>
     </div>

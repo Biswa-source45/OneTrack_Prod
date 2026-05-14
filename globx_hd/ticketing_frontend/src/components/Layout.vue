@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col min-h-screen bg-blue-50">
+  <div class="flex flex-col min-h-screen bg-neutral-light">
     <Header :sidebarOpen="sidebarOpen" @toggleSidebar="toggleSidebar" />
     <div class="flex flex-1 relative">
       <Sidebar :sidebarOpen="sidebarOpen" />
