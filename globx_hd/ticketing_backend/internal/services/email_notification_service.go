@@ -51,24 +51,36 @@ func getenvOrDefault(key, def string) string {
 	return def
 }
 
-// sendMail sends a single HTML email
+// sendMail sends an HTML email via STARTTLS on port 587
+// This is the only reliable method for Gmail/Google Workspace App Passwords.
 func (s *EmailNotificationService) sendMail(to []string, subject, htmlBody string) error {
 	if s.emailUsername == "" || s.emailPassword == "" {
-		return fmt.Errorf("SMTP credentials not configured")
+		return fmt.Errorf("SMTP credentials not configured (EMAIL_USERNAME or EMAIL_PASSWORD is empty)")
 	}
 
-	// Build recipients (To + self-CC for tracking)
-	allTo := append([]string{}, to...)
-	allTo = append(allTo, s.emailUsername) // self-CC always
+	log.Printf("[EMAIL] Preparing: subject=%q  from=%s  primary-to=%v", subject, s.emailUsername, to)
+
+	// Build final recipient list: original To + self-CC (support inbox)
+	allRecipients := append([]string{}, to...)
+	selfAlreadyIn := false
+	for _, addr := range to {
+		if strings.EqualFold(strings.TrimSpace(addr), strings.ToLower(s.emailUsername)) {
+			selfAlreadyIn = true
+			break
+		}
+	}
+	if !selfAlreadyIn {
+		allRecipients = append(allRecipients, s.emailUsername)
+	}
 
 	// Deduplicate
 	seen := map[string]bool{}
-	unique := allTo[:0]
-	for _, addr := range allTo {
+	unique := []string{}
+	for _, addr := range allRecipients {
 		a := strings.ToLower(strings.TrimSpace(addr))
 		if a != "" && !seen[a] {
 			seen[a] = true
-			unique = append(unique, addr)
+			unique = append(unique, strings.TrimSpace(addr))
 		}
 	}
 
@@ -82,42 +94,69 @@ func (s *EmailNotificationService) sendMail(to []string, subject, htmlBody strin
 		"\r\n" + htmlBody
 
 	smtpAddr := fmt.Sprintf("%s:%s", s.smtpServer, s.smtpPort)
-	auth := smtp.PlainAuth("", s.emailUsername, s.emailPassword, s.smtpServer)
+	log.Printf("[EMAIL] Dialing SMTP: %s", smtpAddr)
 
-	// Try STARTTLS (port 587)
-	conn, err := tls.Dial("tcp", fmt.Sprintf("%s:465", s.smtpServer), &tls.Config{ServerName: s.smtpServer})
-	if err == nil {
-		// SSL on port 465 worked
-		defer conn.Close()
-		client, err := smtp.NewClient(conn, s.smtpServer)
-		if err != nil {
-			return err
-		}
-		if err = client.Auth(auth); err != nil {
-			return err
-		}
-		if err = client.Mail(s.emailUsername); err != nil {
-			return err
-		}
-		for _, addr := range unique {
-			if err = client.Rcpt(addr); err != nil {
-				log.Printf("Warning: could not add recipient %s: %v", addr, err)
-			}
-		}
-		w, err := client.Data()
-		if err != nil {
-			return err
-		}
-		_, err = fmt.Fprint(w, msg)
-		if err != nil {
-			return err
-		}
-		w.Close()
-		return client.Quit()
+	// Step 1: plain TCP dial
+	client, err := smtp.Dial(smtpAddr)
+	if err != nil {
+		return fmt.Errorf("SMTP Dial(%s) failed: %w", smtpAddr, err)
+	}
+	defer client.Close()
+
+	// Step 2: EHLO
+	if err = client.Hello("localhost"); err != nil {
+		return fmt.Errorf("SMTP EHLO failed: %w", err)
 	}
 
-	// Fall back to STARTTLS on port 587
-	return smtp.SendMail(smtpAddr, auth, s.emailUsername, unique, []byte(msg))
+	// Step 3: Upgrade to STARTTLS
+	tlsConfig := &tls.Config{ServerName: s.smtpServer}
+	if ok, _ := client.Extension("STARTTLS"); ok {
+		if err = client.StartTLS(tlsConfig); err != nil {
+			return fmt.Errorf("STARTTLS upgrade failed: %w", err)
+		}
+		log.Printf("[EMAIL] STARTTLS OK with %s", s.smtpServer)
+	} else {
+		log.Printf("[EMAIL] WARNING: %s did not advertise STARTTLS", s.smtpServer)
+	}
+
+	// Step 4: Auth
+	auth := smtp.PlainAuth("", s.emailUsername, s.emailPassword, s.smtpServer)
+	if err = client.Auth(auth); err != nil {
+		return fmt.Errorf("SMTP Auth failed for %s: %w — check App Password in .env.email", s.emailUsername, err)
+	}
+	log.Printf("[EMAIL] Auth OK as %s", s.emailUsername)
+
+	// Step 5: MAIL FROM
+	if err = client.Mail(s.emailUsername); err != nil {
+		return fmt.Errorf("SMTP MAIL FROM failed: %w", err)
+	}
+
+	// Step 6: RCPT TO
+	for _, addr := range unique {
+		if err = client.Rcpt(addr); err != nil {
+			log.Printf("[EMAIL] RCPT TO %s failed (skipped): %v", addr, err)
+		}
+	}
+
+	// Step 7: DATA
+	w, err := client.Data()
+	if err != nil {
+		return fmt.Errorf("SMTP DATA failed: %w", err)
+	}
+	if _, err = fmt.Fprint(w, msg); err != nil {
+		return fmt.Errorf("SMTP write body failed: %w", err)
+	}
+	if err = w.Close(); err != nil {
+		return fmt.Errorf("SMTP DATA close failed: %w", err)
+	}
+
+	// Step 8: QUIT
+	if err = client.Quit(); err != nil {
+		log.Printf("[EMAIL] QUIT warning (message still sent): %v", err)
+	}
+
+	log.Printf("[EMAIL] Sent OK → %v", unique)
+	return nil
 }
 
 // SendTicketCreationEmail sends ticket creation email to contact + self-CC
@@ -152,6 +191,7 @@ func (s *EmailNotificationService) SendTicketCreationEmail(ticket *models.Ticket
 
 	if len(recipients) == 0 {
 		// No contact email – still send to self for internal tracking
+		log.Printf("[EMAIL] Contact has no email for ticket %s — sending to self only", ticket.TicketID)
 		recipients = append(recipients, s.emailUsername)
 	}
 
