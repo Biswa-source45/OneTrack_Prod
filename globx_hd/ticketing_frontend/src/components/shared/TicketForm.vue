@@ -218,15 +218,16 @@
       </div>
     </form>
 
+    <!-- Error Message (always visible, above form submit) -->
+    <div v-if="error" class="mt-4 p-4 bg-red-50 border border-red-300 text-red-700 rounded flex items-start justify-between">
+      <span>{{ error }}</span>
+      <button type="button" @click="error = ''" class="ml-4 text-red-500 hover:text-red-700 font-bold text-lg leading-none">&times;</button>
+    </div>
+
     <!-- Success Message -->
     <div v-if="showSuccess" class="mt-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
       {{ isEditMode ? 'Ticket updated successfully!' : 'Ticket created successfully!' }}
     </div>
-
-    <!-- Error Modal -->
-    <Modal v-if="error" @close="error = ''">
-      <div class="text-red-700 font-semibold">{{ error }}</div>
-    </Modal>
 
     <!-- Account Create Modal -->
     <AccountCreateModal 
@@ -579,6 +580,12 @@ const onSubmit = async () => {
     return;
   }
 
+  // Channel is always required
+  if (!form.value.channel?.trim()) {
+    error.value = 'Please select a channel (Phone or Mail)';
+    return;
+  }
+
   submitting.value = true;
   error.value = '';
 
@@ -608,7 +615,7 @@ const onSubmit = async () => {
         ticket_status: form.value.status || 'OPEN',
         assigned_engineer: form.value.assignedEngineer ? parseInt(form.value.assignedEngineer) : null,
         priority: form.value.priority || 'Medium',
-        channel: form.value.channel || 'Manager',
+        channel: form.value.channel || 'Phone',
         ticket_details: form.value.description || 'No details provided'
       };
       console.log('Create payload:', createPayload);
