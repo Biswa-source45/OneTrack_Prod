@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -115,12 +116,19 @@ func CreateTicketHandler(db *gorm.DB) gin.HandlerFunc {
 			ticket,
 		)
 
-		// Send notifications for ticket creation
+		// Send in-app notifications
 		notificationService := services.NewNotificationService(db)
 		if err := notificationService.NotifyTicketCreated(ticket, &contactID, "contact"); err != nil {
-			// Log error but don't fail the request
-			// log.Printf("Failed to send ticket creation notifications: %v", err)
+			log.Printf("Failed to send in-app ticket creation notifications: %v", err)
 		}
+
+		// Send email notification (async, non-blocking)
+		go func() {
+			emailSvc := services.NewEmailNotificationServiceFromEnv(db)
+			if err := emailSvc.SendTicketCreationEmail(&ticket); err != nil {
+				log.Printf("[EMAIL] Failed to send ticket creation email for %s: %v", ticket.TicketID, err)
+			}
+		}()
 
 		c.JSON(http.StatusCreated, gin.H{"ticket": ticket})
 	}
@@ -231,14 +239,21 @@ func ManagerCreateTicketHandler(db *gorm.DB) gin.HandlerFunc {
 					ticket,
 				)
 
-				// Send notifications for manager ticket creation
+				// Send in-app notifications
 				notificationService := services.NewNotificationService(db)
 				if err := notificationService.NotifyTicketCreated(ticket, &user.ID, "user"); err != nil {
-					// Log error but don't fail the request
 					fmt.Printf("❌ Failed to send manager ticket creation notifications: %v\n", err)
 				} else {
 					fmt.Printf("✅ Manager ticket creation notifications sent successfully\n")
 				}
+
+				// Send email notification (async)
+				go func() {
+					emailSvc := services.NewEmailNotificationServiceFromEnv(db)
+					if err := emailSvc.SendTicketCreationEmail(&ticket); err != nil {
+						log.Printf("[EMAIL] Failed to send ticket creation email for %s: %v", ticket.TicketID, err)
+					}
+				}()
 			} else {
 				fmt.Printf("❌ User context type assertion failed in manager create ticket\n")
 			}
@@ -475,6 +490,33 @@ func ManagerEditTicketHandler(db *gorm.DB) gin.HandlerFunc {
 				}
 			}
 		}
+
+		// Send email notification for ticket update (async)
+		go func() {
+			emailSvc := services.NewEmailNotificationServiceFromEnv(db)
+			changes := map[string]string{}
+			if input.TicketStatus != nil {
+				changes["Status"] = *input.TicketStatus
+			}
+			if input.Priority != nil {
+				changes["Priority"] = *input.Priority
+			}
+			if input.Subject != nil {
+				changes["Subject"] = *input.Subject
+			}
+			if input.AssignedEngineer != nil {
+				changes["Assigned Engineer"] = getUserNameSafe(db, *input.AssignedEngineer)
+			}
+			changedBy := "Manager"
+			if userID != nil {
+				changedBy = getUserNameSafe(db, *userID)
+			}
+			if len(changes) > 0 {
+				if err := emailSvc.SendTicketUpdateEmail(&ticket, changedBy, changes); err != nil {
+					log.Printf("[EMAIL] Failed to send ticket update email for %s: %v", ticket.TicketID, err)
+				}
+			}
+		}()
 
 		c.JSON(http.StatusOK, gin.H{"ticket": ticket})
 	}
@@ -848,4 +890,13 @@ func getProductName(db *gorm.DB, productID uint) (string, error) {
 		return "", err
 	}
 	return product.ProductName, nil
+}
+
+// getUserNameSafe returns full name of a user, or "Unknown" if not found
+func getUserNameSafe(db *gorm.DB, userID uint) string {
+	name, err := getUserName(db, userID)
+	if err != nil {
+		return "Unknown"
+	}
+	return name
 }
