@@ -36,14 +36,14 @@
       <FormField label="Location">
         <input v-model="form.location" class="w-full border border-blue-200 rounded px-3 py-2" />
       </FormField>
-      <FormField label="Email">
-        <input type="email" v-model="form.email" class="w-full border border-blue-200 rounded px-3 py-2" />
+      <FormField label="Email (Optional)">
+        <input type="email" v-model="form.email" placeholder="Enter email address" class="w-full border border-blue-200 rounded px-3 py-2" />
       </FormField>
       <FormField label="Mobile">
         <input v-model="form.mobile" class="w-full border border-blue-200 rounded px-3 py-2" />
       </FormField>
-      <FormField label="Password">
-        <input type="password" v-model="form.password" class="w-full border border-blue-200 rounded px-3 py-2" />
+      <FormField label="Password (Optional)">
+        <input type="password" v-model="form.password" placeholder="Enter password (min 6 characters)" class="w-full border border-blue-200 rounded px-3 py-2" />
       </FormField>
       <template #actions>
         <Button variant="secondary" type="button" @click="$emit('close')">Cancel</Button>
@@ -187,6 +187,39 @@ watch(() => props.open, (isOpen) => {
 const save = async () => {
   if (submitting.value) return;
   
+  // Client-side validation
+  if (!form.contact_type) {
+    errorMessage.value = 'Contact Type is required.';
+    return;
+  }
+  if ((form.contact_type === 'Govt.' || form.contact_type === 'Private') && !form.account_id) {
+    errorMessage.value = 'Account is required for Govt. and Private contacts.';
+    return;
+  }
+  if (!form.first_name || !form.first_name.trim()) {
+    errorMessage.value = 'First Name is required.';
+    return;
+  }
+  if (!form.designation_id) {
+    errorMessage.value = 'Designation is required.';
+    return;
+  }
+  if (!form.mobile || !form.mobile.trim()) {
+    errorMessage.value = 'Mobile number is required.';
+    return;
+  }
+  if (form.email && form.email.trim()) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email.trim())) {
+      errorMessage.value = 'Please enter a valid email address.';
+      return;
+    }
+  }
+  if (form.password && form.password.length < 6) {
+    errorMessage.value = 'Password must be at least 6 characters long.';
+    return;
+  }
+
   submitting.value = true;
   errorMessage.value = '';
   

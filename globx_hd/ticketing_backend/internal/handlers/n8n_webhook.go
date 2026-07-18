@@ -504,7 +504,11 @@ func N8nLookupContactsHandler(db *gorm.DB) gin.HandlerFunc {
 		results := make([]N8nLookupContactResponse, 0, len(contacts))
 		for _, cont := range contacts {
 			fullName := strings.ToLower(cont.FirstName + " " + cont.LastName)
-			emailLower := strings.ToLower(cont.Email)
+			emailVal := ""
+			if cont.Email != nil {
+				emailVal = *cont.Email
+			}
+			emailLower := strings.ToLower(emailVal)
 
 			// Calculate best score from name or email
 			nameScore := calculateMatchScore(fullName, searchLower)
@@ -518,7 +522,7 @@ func N8nLookupContactsHandler(db *gorm.DB) gin.HandlerFunc {
 				ID:        cont.ID,
 				FirstName: cont.FirstName,
 				LastName:  cont.LastName,
-				Email:     cont.Email,
+				Email:     emailVal,
 				Mobile:    cont.Mobile,
 				AccountID: cont.AccountID,
 				Score:     score,

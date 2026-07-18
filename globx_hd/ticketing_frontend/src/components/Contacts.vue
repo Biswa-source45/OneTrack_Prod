@@ -29,6 +29,9 @@
 
     <Modal :open="openCreate || openEdit" :title="openEdit ? 'Edit Contact' : 'Add Contact'" @close="closeForm">
       <FormLayout @submit="save">
+        <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p class="text-sm text-red-700">{{ errorMessage }}</p>
+        </div>
         <FormField label="Contact Type">
           <select v-model="form.contact_type" class="w-full border border-blue-200 rounded px-3 py-2">
             <option disabled value="">Select contact type</option>
@@ -53,9 +56,9 @@
         </FormField>
         <FormField label="Department"><input v-model="form.department" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
         <FormField v-if="!openEdit" label="Location"><input v-model="form.location" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
-        <FormField label="Email"><input type="email" v-model="form.email" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
+        <FormField label="Email (Optional)"><input type="email" v-model="form.email" placeholder="Enter email address" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
         <FormField label="Mobile"><input v-model="form.mobile" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
-        <FormField v-if="!openEdit" label="Password"><input type="password" v-model="form.password" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
+        <FormField v-if="!openEdit" label="Password (Optional)"><input type="password" v-model="form.password" placeholder="Enter password (min 6 characters)" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
         <template #actions>
           <Button variant="secondary" type="button" @click="closeForm">Cancel</Button>
           <Button type="submit">Save</Button>
@@ -90,6 +93,7 @@ const columns = [
 ];
 
 const openCreate = ref(false); const openEdit = ref(false); const editingId = ref(null);
+const errorMessage = ref('');
 const form = reactive({ contact_type: '', account_id: 0, designation_id: 0, department: '', location: '', first_name: '', last_name: '', email: '', mobile: '', password: '' });
 
 onMounted(async () => {
@@ -103,12 +107,51 @@ async function load(){
   console.log('Contacts API response:', resp);
   rows.value = resp;
 }
-function closeForm(){ openCreate.value=false; openEdit.value=false; editingId.value=null; Object.assign(form, { contact_type:'', account_id:0, designation_id:0, department:'', location:'', first_name:'', last_name:'', email:'', mobile:'', password:'' }); }
+function closeForm(){ openCreate.value=false; openEdit.value=false; editingId.value=null; errorMessage.value=''; Object.assign(form, { contact_type:'', account_id:0, designation_id:0, department:'', location:'', first_name:'', last_name:'', email:'', mobile:'', password:'' }); }
 function startEdit(row){ openEdit.value=true; editingId.value=row.id; Object.assign(form, { contact_type: row.contact_type || '', account_id: row.account_id || 0, designation_id: row.designation_id, department: row.department || '', location: row.location || '', first_name: row.first_name, last_name: row.last_name, email: row.email, mobile: row.mobile, password: '' }); }
 const submitting = ref(false);
 async function save(){
   if (submitting.value) return;
+  
+  // Client-side validation
+  if (!form.contact_type) {
+    errorMessage.value = 'Contact Type is required.';
+    return;
+  }
+  if ((form.contact_type === 'Govt.' || form.contact_type === 'Private') && !form.account_id) {
+    errorMessage.value = 'Account is required for Govt. and Private contacts.';
+    return;
+  }
+  if (!form.first_name || !form.first_name.trim()) {
+    errorMessage.value = 'First Name is required.';
+    return;
+  }
+  if (!form.designation_id) {
+    errorMessage.value = 'Designation is required.';
+    return;
+  }
+  if (!form.mobile || !form.mobile.trim()) {
+    errorMessage.value = 'Mobile number is required.';
+    return;
+  }
+  if (form.email && form.email.trim()) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email.trim())) {
+      errorMessage.value = 'Please enter a valid email address.';
+      return;
+    }
+  }
+  if (!openEdit.value && form.password && form.password.length < 6) {
+    errorMessage.value = 'Password must be at least 6 characters long.';
+    return;
+  }
+  if (openEdit.value && form.password && form.password.length > 0 && form.password.length < 6) {
+    errorMessage.value = 'Password must be at least 6 characters long.';
+    return;
+  }
+
   submitting.value = true;
+  errorMessage.value = '';
   try {
     if(openEdit.value){
       const payload = { contact_type: form.contact_type, designation_id: form.designation_id, department: form.department, location: form.location, first_name: form.first_name, last_name: form.last_name, email: form.email, mobile: form.mobile };
@@ -127,6 +170,9 @@ async function save(){
       await createContact(payload);
     }
     closeForm(); await load();
+  } catch (error) {
+    console.error('Failed to save contact:', error);
+    errorMessage.value = error.response?.data?.error || 'Failed to save contact. Please try again.';
   } finally {
     submitting.value = false;
   }

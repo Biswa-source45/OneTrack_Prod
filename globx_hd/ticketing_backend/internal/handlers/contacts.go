@@ -13,16 +13,16 @@ import (
 )
 
 type CreateContactInput struct {
-	AccountID     *uint  `json:"account_id"` // Optional for Individual contacts
-	DesignationID uint   `json:"designation_id" binding:"required"`
-	ContactType   string `json:"contact_type" binding:"required"`
-	Department    string `json:"department"`
-	Location      string `json:"location"`
-	FirstName     string `json:"first_name" binding:"required"`
-	LastName      string `json:"last_name"`
-	Email         string `json:"email" binding:"required,email"`
-	Mobile        string `json:"mobile"`
-	Password      string `json:"password" binding:"required,min=6"`
+	AccountID     *uint   `json:"account_id"` // Optional for Individual contacts
+	DesignationID uint    `json:"designation_id" binding:"required"`
+	ContactType   string  `json:"contact_type" binding:"required"`
+	Department    string  `json:"department"`
+	Location      string  `json:"location"`
+	FirstName     string  `json:"first_name" binding:"required"`
+	LastName      string  `json:"last_name"`
+	Email         *string `json:"email" binding:"omitempty,email"`
+	Mobile        string  `json:"mobile" binding:"required"`
+	Password      *string `json:"password" binding:"omitempty,min=6"`
 }
 
 func CreateContact(db *gorm.DB) gin.HandlerFunc {
@@ -72,10 +72,19 @@ func CreateContact(db *gorm.DB) gin.HandlerFunc {
 			customerCode = code
 		}
 
-		hash, err := utils.HashPassword(in.Password)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not hash password"})
-			return
+		var emailPtr *string
+		if in.Email != nil && *in.Email != "" {
+			emailPtr = in.Email
+		}
+
+		var hashPtr *string
+		if in.Password != nil && *in.Password != "" {
+			hash, err := utils.HashPassword(*in.Password)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not hash password"})
+				return
+			}
+			hashPtr = &hash
 		}
 
 		contact := models.Contact{
@@ -86,9 +95,9 @@ func CreateContact(db *gorm.DB) gin.HandlerFunc {
 			Location:      in.Location,
 			FirstName:     in.FirstName,
 			LastName:      in.LastName,
-			Email:         in.Email,
+			Email:         emailPtr,
 			Mobile:        in.Mobile,
-			PasswordHash:  hash,
+			PasswordHash:  hashPtr,
 			FirstLogin:    true,
 			CustomerCode:  customerCode,
 		}
@@ -106,7 +115,7 @@ func CreateContact(db *gorm.DB) gin.HandlerFunc {
 			models.EntityTypeContact,
 			&contact.ID,
 			fmt.Sprintf("%s %s", contact.FirstName, contact.LastName),
-			fmt.Sprintf("Contact created: %s (%s) - Type: %s", contact.Email, contact.ContactType, contact.CustomerCode),
+			fmt.Sprintf("Contact created: %s (%s) - Type: %s", derefString(contact.Email), contact.ContactType, contact.CustomerCode),
 			nil,
 			contact,
 		)
@@ -204,17 +213,25 @@ func UpdateContact(db *gorm.DB) gin.HandlerFunc {
 			contact.LastName = *in.LastName
 		}
 		if in.Email != nil {
-			contact.Email = *in.Email
+			if *in.Email == "" {
+				contact.Email = nil
+			} else {
+				contact.Email = in.Email
+			}
 		}
 		if in.Mobile != nil {
 			contact.Mobile = *in.Mobile
 		}
 		if in.Password != nil {
-			if h, err := utils.HashPassword(*in.Password); err == nil {
-				contact.PasswordHash = h
+			if *in.Password == "" {
+				contact.PasswordHash = nil
 			} else {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "password hash error"})
-				return
+				if h, err := utils.HashPassword(*in.Password); err == nil {
+					contact.PasswordHash = &h
+				} else {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "password hash error"})
+					return
+				}
 			}
 		}
 
@@ -231,7 +248,7 @@ func UpdateContact(db *gorm.DB) gin.HandlerFunc {
 			models.EntityTypeContact,
 			&contact.ID,
 			fmt.Sprintf("%s %s", contact.FirstName, contact.LastName),
-			fmt.Sprintf("Contact updated: %s (%s)", contact.Email, contact.ContactType),
+			fmt.Sprintf("Contact updated: %s (%s)", derefString(contact.Email), contact.ContactType),
 			oldContact,
 			contact,
 		)
@@ -264,11 +281,18 @@ func DeleteContact(db *gorm.DB) gin.HandlerFunc {
 			models.EntityTypeContact,
 			&contact.ID,
 			fmt.Sprintf("%s %s", contact.FirstName, contact.LastName),
-			fmt.Sprintf("Contact deleted: %s (%s)", contact.Email, contact.ContactType),
+			fmt.Sprintf("Contact deleted: %s (%s)", derefString(contact.Email), contact.ContactType),
 			contact,
 			nil,
 		)
 
 		c.Status(http.StatusNoContent)
 	}
+}
+
+func derefString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

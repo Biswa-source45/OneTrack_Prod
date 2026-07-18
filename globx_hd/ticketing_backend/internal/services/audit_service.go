@@ -335,7 +335,9 @@ func (s *AuditService) extractActorInfo(c *gin.Context, log *models.AuditLog) {
 			log.ActorID = &contact.ID
 			log.ActorType = models.ActorTypeContact
 			log.ActorName = fmt.Sprintf("%s %s", contact.FirstName, contact.LastName)
-			log.ActorEmail = contact.Email
+			if contact.Email != nil {
+				log.ActorEmail = *contact.Email
+			}
 		}
 	}
 
@@ -349,7 +351,9 @@ func (s *AuditService) extractActorInfo(c *gin.Context, log *models.AuditLog) {
 				var contact models.Contact
 				if err := s.db.First(&contact, contactID).Error; err == nil {
 					log.ActorName = fmt.Sprintf("%s %s", contact.FirstName, contact.LastName)
-					log.ActorEmail = contact.Email
+					if contact.Email != nil {
+						log.ActorEmail = *contact.Email
+					}
 				}
 			}
 		}

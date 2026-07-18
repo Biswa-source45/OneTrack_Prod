@@ -943,24 +943,51 @@ sudo systemctl restart nginx
 
 ### Deploying Updates
 
-#### Backend Update:
+#### Method A: Full Pull (Updates all files)
+Use this if you want to keep the entire local repository in sync with the remote:
+
 ```bash
 cd /home/deploy/globx_hd
-git pull origin main
-cd ticketing_backend
+git pull origin master
+```
+
+#### Method B: Selective Pull (Updates only specific files)
+Use this if you have local modifications on the VPS that you don't want to lose, or if you only want to pull specific files:
+
+```bash
+cd /home/deploy/globx_hd
+
+# 1. Fetch remote changes without merging
+git fetch origin master
+
+# 2. Checkout/restore only the specific updated files from the remote branch
+git checkout origin/master -- ticketing_backend/internal/models/models.go
+git checkout origin/master -- ticketing_backend/internal/handlers/contacts.go
+git checkout origin/master -- ticketing_backend/internal/handlers/auth.go
+git checkout origin/master -- ticketing_backend/internal/handlers/n8n_webhook.go
+git checkout origin/master -- ticketing_backend/internal/services/audit_service.go
+git checkout origin/master -- ticketing_backend/migrations/009_make_contact_auth_optional.sql
+git checkout origin/master -- ticketing_backend/internal/handlers/audit_testing_endpoint.go
+git checkout origin/master -- ticketing_frontend/src/components/Contacts.vue
+git checkout origin/master -- ticketing_frontend/src/components/shared/ContactCreateModal.vue
+```
+
+#### After Pulling: Rebuild & Restart Services
+
+##### 1. Backend:
+```bash
+cd /home/deploy/globx_hd/ticketing_backend
 go build -o globx-backend ./cmd/main.go
 sudo systemctl restart globx-backend
 ```
 
-#### Frontend Update:
+##### 2. Frontend:
 ```bash
-cd /home/deploy/globx_hd
-git pull origin main
-cd ticketing_frontend
+cd /home/deploy/globx_hd/ticketing_frontend
 npm install
 npm run build-only
 sudo cp -r dist/* /var/www/globx-hd/
-# No restart needed - Nginx serves static files
+# No restart needed - Nginx automatically serves the updated static files
 ```
 
 ### Database Backup (KVM4)

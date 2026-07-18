@@ -59,9 +59,9 @@ type Contact struct {
 	Location      string                   `gorm:"size:100" json:"location"`
 	FirstName     string                   `gorm:"not null" json:"first_name"`
 	LastName      string                   `json:"last_name"`
-	Email         string                   `gorm:"unique;not null" json:"email"`
+	Email         *string                  `gorm:"unique" json:"email"`
 	Mobile        string                   `json:"mobile"`
-	PasswordHash  string                   `gorm:"not null" json:"-"`
+	PasswordHash  *string                  `json:"-"`
 	FirstLogin    bool                     `gorm:"default:true" json:"first_login"`
 	CustomerCode  string                   `json:"customer_code"`
 	CreatedAt     time.Time                `json:"created_at"`

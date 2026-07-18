@@ -98,7 +98,7 @@ func Logout(db *gorm.DB) gin.HandlerFunc {
 					models.ActorTypeContact,
 					&contact.ID,
 					fmt.Sprintf("%s %s", contact.FirstName, contact.LastName),
-					contact.Email,
+					derefString(contact.Email),
 					models.AuditLogout,
 					true,
 					c.ClientIP(),
@@ -178,7 +178,7 @@ func ResetContactPassword(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not hash password"})
 			return
 		}
-		contact.PasswordHash = hash
+		contact.PasswordHash = &hash
 		contact.FirstLogin = false
 		if err := db.Save(&contact).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -191,7 +191,7 @@ func ResetContactPassword(db *gorm.DB) gin.HandlerFunc {
 			models.ActorTypeContact,
 			&contact.ID,
 			fmt.Sprintf("%s %s", contact.FirstName, contact.LastName),
-			contact.Email,
+			derefString(contact.Email),
 			models.AuditPasswordReset,
 			true,
 			c.ClientIP(),
@@ -327,13 +327,13 @@ func ContactLogin(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 			return
 		}
-		if !utils.CheckPasswordHash(in.Password, contact.PasswordHash) {
+		if contact.PasswordHash == nil || !utils.CheckPasswordHash(in.Password, *contact.PasswordHash) {
 			// Log failed login attempt
 			auditService.LogAuthentication(
 				models.ActorTypeContact,
 				&contact.ID,
 				fmt.Sprintf("%s %s", contact.FirstName, contact.LastName),
-				contact.Email,
+				derefString(contact.Email),
 				models.AuditContactLoginFailure,
 				false,
 				c.ClientIP(),
@@ -359,7 +359,7 @@ func ContactLogin(db *gorm.DB) gin.HandlerFunc {
 			models.ActorTypeContact,
 			&contact.ID,
 			fmt.Sprintf("%s %s", contact.FirstName, contact.LastName),
-			contact.Email,
+			derefString(contact.Email),
 			models.AuditContactLoginSuccess,
 			true,
 			c.ClientIP(),
