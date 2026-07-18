@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/Chinmay-Globx/ticketing-backend/internal/models"
 	"github.com/Chinmay-Globx/ticketing-backend/internal/services"
@@ -20,9 +21,9 @@ type CreateContactInput struct {
 	Location      string  `json:"location"`
 	FirstName     string  `json:"first_name" binding:"required"`
 	LastName      string  `json:"last_name"`
-	Email         *string `json:"email" binding:"omitempty,email"`
+	Email         *string `json:"email"`
 	Mobile        string  `json:"mobile" binding:"required"`
-	Password      *string `json:"password" binding:"omitempty,min=6"`
+	Password      *string `json:"password"`
 }
 
 func CreateContact(db *gorm.DB) gin.HandlerFunc {
@@ -31,6 +32,22 @@ func CreateContact(db *gorm.DB) gin.HandlerFunc {
 		if err := c.ShouldBindJSON(&in); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
+		}
+
+		// Validate Email format if provided
+		if in.Email != nil && *in.Email != "" {
+			if !isValidEmail(*in.Email) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+				return
+			}
+		}
+
+		// Validate Password length if provided
+		if in.Password != nil && *in.Password != "" {
+			if len(*in.Password) < 6 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 6 characters"})
+				return
+			}
 		}
 
 		// Validate contact type
@@ -155,7 +172,7 @@ type UpdateContactInput struct {
 	Location      *string `json:"location"`
 	FirstName     *string `json:"first_name"`
 	LastName      *string `json:"last_name"`
-	Email         *string `json:"email" binding:"omitempty,email"`
+	Email         *string `json:"email"`
 	Mobile        *string `json:"mobile"`
 	Password      *string `json:"password"`
 }
@@ -216,6 +233,10 @@ func UpdateContact(db *gorm.DB) gin.HandlerFunc {
 			if *in.Email == "" {
 				contact.Email = nil
 			} else {
+				if !isValidEmail(*in.Email) {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+					return
+				}
 				contact.Email = in.Email
 			}
 		}
@@ -226,6 +247,10 @@ func UpdateContact(db *gorm.DB) gin.HandlerFunc {
 			if *in.Password == "" {
 				contact.PasswordHash = nil
 			} else {
+				if len(*in.Password) < 6 {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 6 characters"})
+					return
+				}
 				if h, err := utils.HashPassword(*in.Password); err == nil {
 					contact.PasswordHash = &h
 				} else {
@@ -296,3 +321,11 @@ func derefString(s *string) string {
 	}
 	return *s
 }
+
+func isValidEmail(email string) bool {
+	// Simple email regex pattern
+	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	reg := regexp.MustCompile(pattern)
+	return reg.MatchString(email)
+}
+
