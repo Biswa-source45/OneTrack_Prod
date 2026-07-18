@@ -73,7 +73,7 @@
         <FormField label="Email">
           <input 
             v-model="form.email" 
-            type="email" 
+            type="text" 
             readonly
             class="w-full px-3 py-2 border rounded bg-gray-50 text-gray-700"
             placeholder="Will be filled automatically"
@@ -326,14 +326,8 @@ const accountCreateInitialName = ref('');
 const contactCreateInitialName = ref('');
 const productCreateInitialName = ref('');
 
-// Computed property to filter users to show only Engineers (role_id 3 and designation_id 3)
-const engineerUsers = computed(() => {
-  const engineers = users.value.filter(user => 
-    user.role_id === 3 && user.designation_id === 3
-  );
-  console.log('🔧 DEBUG: Filtered engineers:', engineers.length, 'out of', users.value.length, 'total users');
-  return engineers;
-});
+// All users shown in Ticket Owner dropdown
+const engineerUsers = computed(() => users.value);
 
 // Computed property to add full_name to contacts for fuzzy search display
 const contactsWithFullName = computed(() => {
@@ -467,7 +461,7 @@ const populateFormWithTicketData = async () => {
     
     // Set the contact
     form.value.selectedContact = contactWithFullName;
-    form.value.email = contact.email || '';
+    form.value.email = contact.email ? contact.email : 'N/A';
     form.value.phone = contact.mobile || '';
     
     // Use preloaded Account from Contact or ticket
@@ -540,7 +534,7 @@ const selectAccount = (account) => {
 // Contact selection
 const selectContact = (contact) => {
   form.value.selectedContact = contact;
-  form.value.email = contact.email || '';
+  form.value.email = contact.email ? contact.email : 'N/A';
   form.value.phone = contact.mobile || '';
 };
 
