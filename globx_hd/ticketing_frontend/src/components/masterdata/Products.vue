@@ -36,8 +36,10 @@ import DataTable from '../ui/DataTable.vue';
 import DropdownMenu from '../ui/DropdownMenu.vue';
 import ConfirmDialog from '../ui/ConfirmDialog.vue';
 import { fetchProducts, deleteProduct } from '../../api/auth';
+import { useAuthStore } from '../../stores/auth';
 
 const router = useRouter();
+const authStore = useAuthStore();
 const rows = ref([]);
 const loading = ref(false);
 const columns = [
@@ -58,10 +60,12 @@ async function load() {
 }
 
 function goCreate() {
-  router.push('/master-data/products/new');
+  const prefix = authStore.userType === 'manager' ? '/manager' : '';
+  router.push(`${prefix}/master-data/products/new`);
 }
 function goEdit(row) {
-  router.push(`/master-data/products/${row.id}/edit`);
+  const prefix = authStore.userType === 'manager' ? '/manager' : '';
+  router.push(`${prefix}/master-data/products/${row.id}/edit`);
 }
 
 const confirmOpen = ref(false);

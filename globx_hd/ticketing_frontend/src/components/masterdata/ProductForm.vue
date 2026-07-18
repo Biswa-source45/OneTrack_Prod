@@ -24,9 +24,11 @@ import FormLayout from '../ui/FormLayout.vue';
 import FormField from '../ui/FormField.vue';
 import Button from '../ui/Button.vue';
 import { createProduct, updateProduct, fetchProducts } from '../../api/auth';
+import { useAuthStore } from '../../stores/auth';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 const isEdit = route.params.id !== undefined;
 const form = reactive({ product_name: '', product_description: '' });
 const errors = reactive({ product_name: '' });
@@ -55,7 +57,8 @@ async function onSubmit() {
   } else {
     await createProduct({ product_name: form.product_name, product_description: form.product_description });
   }
-  router.push('/master-data/products');
+  const prefix = authStore.userType === 'manager' ? '/manager' : '';
+  router.push(`${prefix}/master-data/products`);
 }
 function cancel() { router.back(); }
 </script>
