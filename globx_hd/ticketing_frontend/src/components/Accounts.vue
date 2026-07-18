@@ -25,7 +25,7 @@
     <Modal :open="openCreate || openEdit" :title="openEdit ? 'Edit Account' : 'Add Account'" @close="closeForm">
       <FormLayout @submit="save">
         <FormField label="Account Name"><input v-model="form.account_name" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
-        <FormField label="Account Owner"><input v-model="form.account_owner" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
+        <FormField label="Account Owner(Globx)"><input v-model="form.account_owner" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
         <FormField label="Address"><input v-model="form.address" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
         <template #actions>
           <Button variant="secondary" type="button" @click="closeForm">Cancel</Button>
