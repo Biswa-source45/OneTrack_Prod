@@ -3,8 +3,6 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"net/smtp"
-	"os"
 	"strings"
 	"time"
 
@@ -324,9 +322,6 @@ func (ns *NotificationService) NotifyTicketCreated(ticket models.Ticket, actorID
 		}
 	}
 
-	// Send email notification using centralized service
-	ns.SendEmailNotification(&ticket)
-
 	return nil
 }
 
@@ -556,119 +551,7 @@ func (ns *NotificationService) NotifyCommentAdded(ticket models.Ticket, comment 
 	return nil
 }
 
-// SendEmailNotification sends an email notification about a ticket
-func (ns *NotificationService) SendEmailNotification(ticket *models.Ticket) {
-	// Get email configuration
-	smtpServer := getEnvOrDefault("EMAIL_SMTP_SERVER", "smtp.gmail.com")
-	smtpPort := getEnvOrDefault("EMAIL_SMTP_PORT", "587")
-	username := getEnvOrDefault("EMAIL_USERNAME", "")
-	password := getEnvOrDefault("EMAIL_PASSWORD", "")
-	recipient := "chinmaykarjan9@gmail.com" // Hardcoded email address as requested
 
-	// Skip if email configuration is incomplete
-	if username == "" || password == "" {
-		fmt.Printf("❌ Email notification skipped: Missing username or password\n")
-		return
-	}
-
-	// Get contact and account info for the notification
-	var contact models.Contact
-	var account models.Account
-	var product models.MasterProduct
-
-	// Fetch the contact details
-	if err := ns.db.First(&contact, ticket.ContactID).Error; err != nil {
-		fmt.Printf("❌ Failed to get contact info for notification: %v\n", err)
-		return
-	}
-
-	// Fetch the account details if available
-	if ticket.AccountID != nil && *ticket.AccountID > 0 {
-		if err := ns.db.First(&account, ticket.AccountID).Error; err != nil {
-			fmt.Printf("Warning: could not get account info for notification: %v\n", err)
-		}
-	}
-
-	// Fetch the product details
-	if err := ns.db.First(&product, ticket.ProductID).Error; err != nil {
-		fmt.Printf("Warning: could not get product info for notification: %v\n", err)
-	}
-
-	// Set up authentication information
-	auth := smtp.PlainAuth("", username, password, smtpServer)
-
-	// Compose email content
-	subject := fmt.Sprintf("New Ticket Created: %s - %s", ticket.TicketID, ticket.Subject)
-
-	// Build a simple HTML email body
-	htmlBody := fmt.Sprintf(`
-	<html>
-	<body>
-	<h2>New Ticket Created</h2>
-	<p>A new support ticket has been created in the ticketing system.</p>
-	<table border="0" cellpadding="5">
-		<tr><td><strong>Ticket ID:</strong></td><td>%s</td></tr>
-		<tr><td><strong>Subject:</strong></td><td>%s</td></tr>
-		<tr><td><strong>Status:</strong></td><td>%s</td></tr>
-		<tr><td><strong>Priority:</strong></td><td>%s</td></tr>
-		<tr><td><strong>Product:</strong></td><td>%s</td></tr>
-		<tr><td><strong>Account:</strong></td><td>%s</td></tr>
-		<tr><td><strong>Contact:</strong></td><td>%s %s</td></tr>
-		<tr><td><strong>Created:</strong></td><td>%s</td></tr>
-	</table>
-	
-	<h3>Ticket Details:</h3>
-	<p>%s</p>
-	
-	<p>Please login to the ticketing system to view and respond to this ticket.</p>
-	</body>
-	</html>`,
-		ticket.TicketID,
-		ticket.Subject,
-		ticket.TicketStatus,
-		ticket.Priority,
-		product.ProductName,
-		account.AccountName,
-		contact.FirstName, contact.LastName,
-		ticket.CreatedAt.Format("Jan 2, 2006 15:04:05"),
-		strings.ReplaceAll(ticket.TicketDetails, "\n", "<br>"),
-	)
-
-	// Compose the full email message with headers
-	headers := make(map[string]string)
-	headers["From"] = username
-	headers["To"] = recipient
-	headers["Subject"] = subject
-	headers["MIME-Version"] = "1.0"
-	headers["Content-Type"] = "text/html; charset=UTF-8"
-
-	// Build the message
-	message := ""
-	for key, value := range headers {
-		message += fmt.Sprintf("%s: %s\r\n", key, value)
-	}
-	message += "\r\n" + htmlBody
-
-	// Connect to the SMTP server
-	smtpAddr := fmt.Sprintf("%s:%s", smtpServer, smtpPort)
-
-	// Send the email
-	err := smtp.SendMail(smtpAddr, auth, username, []string{recipient}, []byte(message))
-	if err != nil {
-		fmt.Printf("❌ Failed to send notification email: %v\n", err)
-	} else {
-		fmt.Printf("✅ Email notification sent successfully for ticket %s to %s\n", ticket.TicketID, recipient)
-	}
-}
-
-// getEnvOrDefault returns environment variable value or default if not set
-func getEnvOrDefault(key, defaultVal string) string {
-	val := os.Getenv(key)
-	if val == "" {
-		return defaultVal
-	}
-	return val
-}
 
 // broadcastNotification sends a new notification via WebSocket
 func (ns *NotificationService) broadcastNotification(notification *models.Notification) {

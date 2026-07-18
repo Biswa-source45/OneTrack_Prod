@@ -300,16 +300,10 @@ const notification = ref({
 const showStatusChangeModal = ref(false)
 const preSelectedStatusForModal = ref('')
 
-// Computed property to add full_name to users (filtered to show only Engineers)
+// Computed property to add full_name to all users
 const usersWithFullName = computed(() => {
-  // Filter users to show only Engineers (role_id 3 and designation_id 3)
-  const engineers = users.value.filter(user => 
-    user.role_id === 3 && user.designation_id === 3
-  );
-  
-  console.log('🔧 DEBUG: Ticket Owner dropdown - Filtered engineers:', engineers.length, 'out of', users.value.length, 'total users');
-  
-  return engineers.map(user => ({
+  console.log('🔧 DEBUG: Ticket Owner dropdown - All users:', users.value.length);
+  return users.value.map(user => ({
     ...user,
     full_name: formatUserName(user)
   }))

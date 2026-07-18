@@ -123,7 +123,7 @@
     <select v-model="selectedEngineer" class="w-full border rounded px-3 py-2">
       <option value="">No engineers assigned</option>
       <option v-for="eng in engineers" :key="eng.id" :value="String(eng.id)">
-        {{ eng.first_name }} {{ eng.last_name }}
+        {{ formatUserName(eng) }}
       </option>
     </select>
   </div>
@@ -203,12 +203,14 @@ import Modal from '@/components/ui/Modal.vue';
 import {
   fetchAllTickets,
   fetchEngineers,
+  fetchUsers,
   assignEngineer,
   changeTicketStatus,
   updateTicket,
   fetchProducts,
   deleteTicket,
 } from '@/api/tickets.js';
+import { formatUserName } from '@/utils/user';
 
 const router = useRouter();
 const route = useRoute();
@@ -309,8 +311,8 @@ async function loadTickets() {
   console.log('tickets.value after load:', tickets.value);
 }
 async function loadEngineers() {
-  const res = await fetchEngineers();
-  engineers.value = res.engineers || [];
+  const res = await fetchUsers();
+  engineers.value = Array.isArray(res) ? res : (res.users || []);
 }
 async function loadProducts() {
   const res = await fetchProducts();

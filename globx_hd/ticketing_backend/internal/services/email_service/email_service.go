@@ -108,7 +108,7 @@ func NewEmailService(db *gorm.DB, uploadDir string) (*EmailService, error) {
 		smtpPort,
 		username,
 		password,
-		"chinmaykarjan9@gmail.com", // Hardcoded email address as requested
+		notificationAddr,
 	)
 
 	return &EmailService{

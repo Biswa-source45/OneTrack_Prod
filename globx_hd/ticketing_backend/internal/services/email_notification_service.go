@@ -159,7 +159,7 @@ func (s *EmailNotificationService) sendMail(to []string, subject, htmlBody strin
 	return nil
 }
 
-// SendTicketCreationEmail sends ticket creation email to contact + self-CC
+// SendTicketCreationEmail sends ticket creation email to the assigned engineer (Ticket Owner) + self-CC
 func (s *EmailNotificationService) SendTicketCreationEmail(ticket *models.Ticket) error {
 	var contact models.Contact
 	var account models.Account
@@ -175,23 +175,22 @@ func (s *EmailNotificationService) SendTicketCreationEmail(ticket *models.Ticket
 
 	var engineer models.User
 	engineerName := "Unassigned"
+	recipients := []string{}
 	if ticket.AssignedEngineer != nil && *ticket.AssignedEngineer > 0 {
 		if err := s.db.First(&engineer, ticket.AssignedEngineer).Error; err == nil {
 			engineerName = engineer.FirstName + " " + engineer.LastName
+			if engineer.Email != "" {
+				recipients = append(recipients, engineer.Email)
+			}
 		}
 	}
 
 	subject := fmt.Sprintf("[GlobX Support] Ticket Raised: %s – %s", ticket.TicketID, ticket.Subject)
 	body := buildTicketCreationHTML(ticket, &contact, &account, &product, engineerName)
 
-	recipients := []string{}
-	if contact.Email != nil && *contact.Email != "" {
-		recipients = append(recipients, *contact.Email)
-	}
-
 	if len(recipients) == 0 {
-		// No contact email – still send to self for internal tracking
-		log.Printf("[EMAIL] Contact has no email for ticket %s — sending to self only", ticket.TicketID)
+		// No engineer email or unassigned – send to self only for internal tracking
+		log.Printf("[EMAIL] No engineer assigned or engineer has no email for ticket %s — sending to self only", ticket.TicketID)
 		recipients = append(recipients, s.emailUsername)
 	}
 
@@ -202,7 +201,7 @@ func (s *EmailNotificationService) SendTicketCreationEmail(ticket *models.Ticket
 	return nil
 }
 
-// SendTicketUpdateEmail sends ticket update email to contact + self-CC
+// SendTicketUpdateEmail sends ticket update email to the assigned engineer (Ticket Owner) + self-CC
 func (s *EmailNotificationService) SendTicketUpdateEmail(ticket *models.Ticket, changedBy string, changes map[string]string) error {
 	var contact models.Contact
 	var account models.Account
@@ -220,8 +219,13 @@ func (s *EmailNotificationService) SendTicketUpdateEmail(ticket *models.Ticket, 
 	body := buildTicketUpdateHTML(ticket, &contact, &account, &product, changedBy, changes)
 
 	recipients := []string{}
-	if contact.Email != nil && *contact.Email != "" {
-		recipients = append(recipients, *contact.Email)
+	if ticket.AssignedEngineer != nil && *ticket.AssignedEngineer > 0 {
+		var engineer models.User
+		if err := s.db.First(&engineer, ticket.AssignedEngineer).Error; err == nil {
+			if engineer.Email != "" {
+				recipients = append(recipients, engineer.Email)
+			}
+		}
 	}
 	if len(recipients) == 0 {
 		recipients = append(recipients, s.emailUsername)
