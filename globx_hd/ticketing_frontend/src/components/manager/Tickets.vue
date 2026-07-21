@@ -298,7 +298,14 @@ const filteredTickets = computed(() => {
   if (!statusFilter.value) {
     return tickets.value
   }
-  return tickets.value.filter(ticket => ticket.ticket_status === statusFilter.value)
+  const filterVal = statusFilter.value.toUpperCase();
+  return tickets.value.filter(ticket => {
+    const status = (ticket.ticket_status || '').toUpperCase();
+    if (filterVal === 'IN PROGRESS') {
+      return status === 'IN PROGRESS' || status === 'IN_PROGRESS';
+    }
+    return status === filterVal;
+  })
 })
 
 // Clear filter and navigate back to all tickets

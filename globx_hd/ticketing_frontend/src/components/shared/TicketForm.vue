@@ -123,13 +123,10 @@
         <FormField v-if="!isEditMode" label="Status" required>
           <select 
             v-model="form.status" 
-            class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+            disabled
+            class="w-full px-3 py-2 border rounded bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none"
           >
-            <option value="" disabled>Select Status</option>
             <option value="OPEN">OPEN</option>
-            <option value="IN PROGRESS">IN PROGRESS</option>
-            <option value="RESOLVED">RESOLVED</option>
-            <option value="CLOSED">CLOSED</option>
           </select>
         </FormField>
 
@@ -304,7 +301,7 @@ const form = ref({
   phone: '',
   productId: '',
   subject: '',
-  status: '',
+  status: 'OPEN',
   assignedEngineer: '',
   priority: '',
   channel: '',
@@ -648,7 +645,7 @@ const onSubmit = async () => {
           phone: '',
           productId: '',
           subject: '',
-          status: '',
+          status: 'OPEN',
           assignedEngineer: '',
           priority: '',
           channel: '',

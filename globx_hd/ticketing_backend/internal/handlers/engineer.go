@@ -263,7 +263,7 @@ type EngineerCreateTicketInput struct {
 	ProductID     uint   `json:"product_id" binding:"required"`
 	Subject       string `json:"subject" binding:"required"`
 	TicketDetails string `json:"ticket_details" binding:"required"`
-	TicketStatus  string `json:"ticket_status" binding:"required"`
+	TicketStatus  string `json:"ticket_status"`
 	Priority      string `json:"priority" binding:"required"`
 	Channel       string `json:"channel" binding:"required"`
 }
@@ -317,6 +317,13 @@ func EngineerCreateTicketHandler(db *gorm.DB) gin.HandlerFunc {
 		ticketID := utils.FormatTicketID(customerCode, dateStr, seq)
 
 		// Create ticket - leave unassigned (only managers can assign engineers)
+		status := input.TicketStatus
+		if status == "" {
+			status = "OPEN"
+		} else {
+			status = "OPEN"
+		}
+
 		ticket := models.Ticket{
 			TicketID:         ticketID,
 			AccountID:        contact.AccountID,
@@ -324,7 +331,7 @@ func EngineerCreateTicketHandler(db *gorm.DB) gin.HandlerFunc {
 			ProductID:        input.ProductID,
 			Subject:          input.Subject,
 			TicketDetails:    input.TicketDetails,
-			TicketStatus:     input.TicketStatus,
+			TicketStatus:     status,
 			Priority:         input.Priority,
 			Channel:          input.Channel,
 			AssignedEngineer: nil, // Leave unassigned - only managers can assign

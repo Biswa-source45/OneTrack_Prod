@@ -60,7 +60,7 @@ func ManagerDashboardStatsHandler(db *gorm.DB) gin.HandlerFunc {
 		if hasDateFilter {
 			openQuery = openQuery.Where("created_at >= ? AND created_at < ?", startDate, endDate)
 		}
-		if err := openQuery.Where("ticket_status = ?", "OPEN").Count(&openCount).Error; err != nil {
+		if err := openQuery.Where("ticket_status IN ?", []string{"OPEN", "Open"}).Count(&openCount).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch open tickets count"})
 			return
 		}
@@ -82,7 +82,7 @@ func ManagerDashboardStatsHandler(db *gorm.DB) gin.HandlerFunc {
 		if hasDateFilter {
 			inProgressQuery = inProgressQuery.Where("created_at >= ? AND created_at < ?", startDate, endDate)
 		}
-		if err := inProgressQuery.Where("ticket_status = ?", "IN PROGRESS").Count(&inProgressCount).Error; err != nil {
+		if err := inProgressQuery.Where("ticket_status IN ?", []string{"IN PROGRESS", "IN_PROGRESS", "In Progress"}).Count(&inProgressCount).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch in progress tickets count"})
 			return
 		}
