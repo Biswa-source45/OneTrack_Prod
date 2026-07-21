@@ -209,3 +209,53 @@ func DeleteUser(db *gorm.DB) gin.HandlerFunc {
 		c.Status(http.StatusNoContent)
 	}
 }
+
+type ResetManagedUserPasswordInput struct {
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+func ResetManagedUserPassword(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		var user models.User
+		if err := db.First(&user, id).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+
+		oldUser := user
+
+		var in ResetManagedUserPasswordInput
+		if err := c.ShouldBindJSON(&in); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		hash, err := utils.HashPassword(in.Password)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not hash password"})
+			return
+		}
+
+		if err := db.Model(&user).Update("password_hash", hash).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Log administrative password reset
+		auditService := services.NewAuditService(db)
+		auditService.LogCRUD(
+			c,
+			models.AuditUserUpdated,
+			models.EntityTypeUser,
+			&user.ID,
+			fmt.Sprintf("%s %s", user.FirstName, user.LastName),
+			fmt.Sprintf("Administrative password reset for user: %s", user.Username),
+			oldUser,
+			user,
+		)
+
+		c.JSON(http.StatusOK, gin.H{"message": "password reset successful"})
+	}
+}
+

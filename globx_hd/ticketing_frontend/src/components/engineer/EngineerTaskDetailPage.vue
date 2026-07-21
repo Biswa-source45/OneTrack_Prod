@@ -192,7 +192,7 @@ const taskId = computed(() => route.params.id)
 // Status options for engineers (same as manager)
 const statusOptions = [
   { value: 'TODO', label: 'To Do' },
-  { value: 'IN_PROGRESS', label: 'In Progress' },
+  { value: 'IN PROGRESS', label: 'In Progress' },
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'ON_HOLD', label: 'On Hold' },
   { value: 'CANCELLED', label: 'Cancelled' }
@@ -202,6 +202,7 @@ const statusOptions = [
 const getStatusBadgeClass = (status) => {
   switch (status) {
     case 'TODO': return 'bg-gray-100 text-gray-800'
+    case 'IN PROGRESS':
     case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800'
     case 'COMPLETED': return 'bg-green-100 text-green-800'
     case 'ON_HOLD': return 'bg-yellow-100 text-yellow-800'

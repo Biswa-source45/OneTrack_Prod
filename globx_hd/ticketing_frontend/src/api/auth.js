@@ -106,3 +106,7 @@ export function updateContact(id, payload) {
 export function deleteContact(id) {
   return api.delete(`/contacts/${id}`).then(r => r.data);
 }
+
+export function resetManagedUserPassword(id, payload) {
+  return api.patch(`/users/${id}/password`, payload).then(r => r.data);
+}

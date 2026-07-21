@@ -67,6 +67,7 @@ func SetupRouter(db *gorm.DB, hub *ws.Hub) *gin.Engine {
 	r.GET("/users/:id", handlers.AuthMiddleware(db), handlers.GetUser(db))
 	r.PUT("/users/:id", handlers.AuthMiddleware(db), handlers.UpdateUser(db))
 	r.DELETE("/users/:id", handlers.AuthMiddleware(db), handlers.DeleteUser(db))
+	r.PATCH("/users/:id/password", handlers.AuthMiddleware(db), handlers.ResetManagedUserPassword(db))
 
 	r.POST("/products", handlers.AuthMiddleware(db), handlers.CreateProduct(db))
 	r.GET("/products", handlers.AuthMiddleware(db), handlers.GetProducts(db))

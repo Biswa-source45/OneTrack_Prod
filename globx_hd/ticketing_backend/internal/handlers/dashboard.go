@@ -54,13 +54,13 @@ func ManagerDashboardStatsHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// Get open tickets count (not CLOSED)
+		// Get open tickets count (OPEN status only)
 		var openCount int64
 		openQuery := db.Model(&models.Ticket{})
 		if hasDateFilter {
 			openQuery = openQuery.Where("created_at >= ? AND created_at < ?", startDate, endDate)
 		}
-		if err := openQuery.Where("ticket_status != ?", "CLOSED").Count(&openCount).Error; err != nil {
+		if err := openQuery.Where("ticket_status = ?", "OPEN").Count(&openCount).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch open tickets count"})
 			return
 		}

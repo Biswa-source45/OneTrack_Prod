@@ -55,6 +55,46 @@
             <option v-for="r in roles" :key="r.id" :value="r.id">{{ r.role_name }}</option>
           </select>
         </FormField>
+        <!-- Password Reset Section (Only in Edit mode) -->
+        <div v-if="openEdit" class="md:col-span-2 mt-4 pt-4 border-t border-gray-100">
+          <div v-if="!showPasswordReset">
+            <Button type="button" variant="secondary" @click="showPasswordReset = true" class="w-full justify-center">
+              Reset User Password
+            </Button>
+          </div>
+          <div v-else class="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <p class="mb-3 text-sm font-medium text-neutral-dark">Set a new password for this user.</p>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 items-end">
+              <FormField label="New Password">
+                <input 
+                  v-model="passwordReset.newPassword" 
+                  type="password" 
+                  minlength="6" 
+                  placeholder="Minimum 6 characters" 
+                  class="w-full border border-amber-300 rounded px-3 py-2 bg-white" 
+                />
+              </FormField>
+              <div class="flex space-x-2 h-10">
+                <Button 
+                  type="button" 
+                  @click="performPasswordReset" 
+                  :disabled="passwordReset.newPassword.length < 6"
+                  class="flex-1 justify-center"
+                >
+                  Apply
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  @click="showPasswordReset = false; passwordReset.newPassword = '';"
+                  class="flex-1 justify-center"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
         <template #actions>
           <Button variant="secondary" type="button" @click="closeForm">Cancel</Button>
           <Button type="submit">Save</Button>
@@ -74,7 +114,7 @@ import ConfirmDialog from './ui/ConfirmDialog.vue';
 import Modal from './ui/Modal.vue';
 import FormLayout from './ui/FormLayout.vue';
 import FormField from './ui/FormField.vue';
-import { fetchUsers, createUser, updateUser, deleteUser, fetchUserDesignations, fetchUserRoles } from '../api/auth';
+import { fetchUsers, createUser, updateUser, deleteUser, fetchUserDesignations, fetchUserRoles, resetManagedUserPassword } from '../api/auth';
 
 const rows = ref([]);
 const roles = ref([]); const userDesignations = ref([]);
@@ -91,6 +131,9 @@ const openCreate = ref(false); const openEdit = ref(false); const editingId = re
 const form = reactive({ employee_id: '', username: '', password: '', first_name: '', last_name: '', email: '', phone: '', designation_id: 0, role_id: 0 });
 const errorMessage = ref('');
 
+const showPasswordReset = ref(false);
+const passwordReset = reactive({ newPassword: '' });
+
 onMounted(async () => {
   roles.value = await fetchUserRoles();
   userDesignations.value = await fetchUserDesignations();
@@ -103,9 +146,34 @@ function closeForm(){
   openEdit.value=false; 
   editingId.value=null; 
   errorMessage.value='';
+  showPasswordReset.value = false;
+  passwordReset.newPassword = '';
   Object.assign(form, { employee_id:'', username:'', password:'', first_name:'', last_name:'', email:'', phone:'', designation_id:0, role_id:0 }); 
 }
-function startEdit(row){ openEdit.value=true; editingId.value=row.id; Object.assign(form, { employee_id: row.employee_id, username: row.username, password:'', first_name: row.first_name, last_name: row.last_name, email: row.email, phone: row.phone, designation_id: row.designation_id, role_id: row.role_id }); }
+function startEdit(row){ 
+  openEdit.value=true; 
+  editingId.value=row.id; 
+  showPasswordReset.value = false;
+  passwordReset.newPassword = '';
+  Object.assign(form, { employee_id: row.employee_id, username: row.username, password:'', first_name: row.first_name, last_name: row.last_name, email: row.email, phone: row.phone, designation_id: row.designation_id, role_id: row.role_id }); 
+}
+
+async function performPasswordReset() {
+  try {
+    errorMessage.value = '';
+    await resetManagedUserPassword(editingId.value, { password: passwordReset.newPassword });
+    passwordReset.newPassword = '';
+    showPasswordReset.value = false;
+    alert('Password reset successfully!');
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    if (error.response?.data?.error) {
+      errorMessage.value = error.response.data.error;
+    } else {
+      errorMessage.value = 'Failed to reset password. Please try again.';
+    }
+  }
+}
 async function save(){
   try {
     errorMessage.value = ''; // Clear previous errors
