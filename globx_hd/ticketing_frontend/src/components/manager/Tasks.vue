@@ -1,13 +1,100 @@
 <template>
   <div class="p-6 bg-white rounded-lg shadow-md max-w-7xl mx-auto mt-8">
-    <h1 class="text-2xl font-bold text-blue-800 mb-6">All Tasks</h1>
-    <div v-if="showSuccess" class="text-green-600 mt-2 text-center font-semibold">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-blue-800">Manager Tasks</h1>
+      <router-link
+        to="/manager/tasks/create"
+        class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
+      >
+        <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Create Task
+      </router-link>
+    </div>
+
+    <!-- Task Statistics Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <!-- Total Tasks Card -->
+      <div 
+        @click="activeStatusFilter = null"
+        :class="['p-4 rounded-xl border transition-all cursor-pointer shadow-sm hover:shadow-md', activeStatusFilter === null ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-500' : 'bg-white border-gray-200 hover:border-blue-200']"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Tasks</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ totalTasksCount }}</p>
+          </div>
+          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- In Progress Card -->
+      <div 
+        @click="activeStatusFilter = 'IN_PROGRESS'"
+        :class="['p-4 rounded-xl border transition-all cursor-pointer shadow-sm hover:shadow-md', activeStatusFilter === 'IN_PROGRESS' ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-500' : 'bg-white border-gray-200 hover:border-amber-200']"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider">In Progress / To Do</p>
+            <p class="text-2xl font-bold text-amber-900 mt-1">{{ inProgressTasksCount }}</p>
+          </div>
+          <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review Pending Card -->
+      <div 
+        @click="activeStatusFilter = 'REVIEW_PENDING'"
+        :class="['p-4 rounded-xl border transition-all cursor-pointer shadow-sm hover:shadow-md', activeStatusFilter === 'REVIEW_PENDING' ? 'bg-purple-50 border-purple-300 ring-2 ring-purple-500' : 'bg-white border-purple-200 hover:border-purple-300']"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-purple-700 uppercase tracking-wider">Review Pending</p>
+            <p class="text-2xl font-bold text-purple-900 mt-1">{{ reviewPendingTasksCount }}</p>
+          </div>
+          <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed Card -->
+      <div 
+        @click="activeStatusFilter = 'COMPLETED'"
+        :class="['p-4 rounded-xl border transition-all cursor-pointer shadow-sm hover:shadow-md', activeStatusFilter === 'COMPLETED' ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-500' : 'bg-white border-gray-200 hover:border-emerald-200']"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Completed / Accepted</p>
+            <p class="text-2xl font-bold text-emerald-900 mt-1">{{ completedTasksCount }}</p>
+          </div>
+          <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showSuccess" class="text-green-600 mb-4 text-center font-semibold bg-green-50 p-2.5 rounded-lg border border-green-200">
       {{ successMessage }}
     </div>
     
     <!-- Tasks Card Layout -->
     <div class="space-y-4">
-      <div v-for="task in tasks" :key="task.id" 
+      <div v-for="task in filteredTasks" :key="task.id" 
            class="bg-white border border-blue-100 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
            @click="openDetail(task)">
         
@@ -167,8 +254,8 @@
 
 <script setup>
 import { formatDateIST } from '@/utils/date';
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { fetchTasks, deleteTask, updateTask } from '@/api/tasks';
 import { fetchUsers } from '@/api/tickets';
 import { formatUserName } from '@/utils/user';
@@ -176,9 +263,59 @@ import Button from '@/components/ui/Button.vue';
 import Modal from '@/components/ui/Modal.vue';
 
 const router = useRouter();
+const route = useRoute();
 const formatDate = formatDateIST;
 const tasks = ref([]);
 const users = ref([]);
+const activeStatusFilter = ref(null);
+
+const totalTasksCount = computed(() => tasks.value.length);
+
+const inProgressTasksCount = computed(() => {
+  return tasks.value.filter(tk => {
+    const s = (tk.task_status || '').toUpperCase();
+    return s === 'IN PROGRESS' || s === 'IN_PROGRESS' || s === 'TODO' || s === 'NOT STARTED';
+  }).length;
+});
+
+const reviewPendingTasksCount = computed(() => {
+  return tasks.value.filter(tk => {
+    const s = (tk.task_status || '').toUpperCase();
+    return s.includes('REVIEW') || s.includes('PENDING') || s.includes('VERIFICATION');
+  }).length;
+});
+
+const completedTasksCount = computed(() => {
+  return tasks.value.filter(tk => {
+    const s = (tk.task_status || '').toUpperCase();
+    return s === 'COMPLETED' || s === 'ACCEPTED';
+  }).length;
+});
+
+const filteredTasks = computed(() => {
+  if (!activeStatusFilter.value) return tasks.value;
+  const filter = activeStatusFilter.value.toUpperCase();
+  if (filter === 'IN_PROGRESS') {
+    return tasks.value.filter(tk => {
+      const s = (tk.task_status || '').toUpperCase();
+      return s === 'IN PROGRESS' || s === 'IN_PROGRESS' || s === 'TODO' || s === 'NOT STARTED';
+    });
+  }
+  if (filter === 'REVIEW_PENDING') {
+    return tasks.value.filter(tk => {
+      const s = (tk.task_status || '').toUpperCase();
+      return s.includes('REVIEW') || s.includes('PENDING') || s.includes('VERIFICATION');
+    });
+  }
+  if (filter === 'COMPLETED') {
+    return tasks.value.filter(tk => {
+      const s = (tk.task_status || '').toUpperCase();
+      return s === 'COMPLETED' || s === 'ACCEPTED';
+    });
+  }
+  return tasks.value;
+});
+
 const showEdit = ref(false);
 const showAssign = ref(false);
 const showStatus = ref(false);
@@ -418,6 +555,9 @@ function formatDateForInput(dateStr) {
 }
 
 onMounted(() => {
+  if (route.query.status) {
+    activeStatusFilter.value = String(route.query.status).toUpperCase();
+  }
   loadTasks();
 });
 </script>
