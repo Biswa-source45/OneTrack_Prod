@@ -183,19 +183,19 @@ func EngineerDashboardStatsHandler(db *gorm.DB) gin.HandlerFunc {
 		// Ticket statistics assigned to this engineer
 		var totalTickets, openTickets, inProgressTickets, resolvedTickets, closedTickets int64
 
-		db.Model(&models.Ticket{}).Where("assigned_engineer_id = ?", user.ID).Count(&totalTickets)
-		db.Model(&models.Ticket{}).Where("assigned_engineer_id = ? AND ticket_status IN ?", user.ID, []string{"OPEN", "Open"}).Count(&openTickets)
-		db.Model(&models.Ticket{}).Where("assigned_engineer_id = ? AND ticket_status IN ?", user.ID, []string{"IN PROGRESS", "IN_PROGRESS", "In Progress"}).Count(&inProgressTickets)
-		db.Model(&models.Ticket{}).Where("assigned_engineer_id = ? AND ticket_status IN ?", user.ID, []string{"RESOLVED", "Resolved"}).Count(&resolvedTickets)
-		db.Model(&models.Ticket{}).Where("assigned_engineer_id = ? AND ticket_status IN ?", user.ID, []string{"CLOSED", "Closed"}).Count(&closedTickets)
+		db.Model(&models.Ticket{}).Where("assigned_engineer = ?", user.ID).Count(&totalTickets)
+		db.Model(&models.Ticket{}).Where("assigned_engineer = ? AND ticket_status IN ?", user.ID, []string{"OPEN", "Open"}).Count(&openTickets)
+		db.Model(&models.Ticket{}).Where("assigned_engineer = ? AND ticket_status IN ?", user.ID, []string{"IN PROGRESS", "IN_PROGRESS", "In Progress"}).Count(&inProgressTickets)
+		db.Model(&models.Ticket{}).Where("assigned_engineer = ? AND ticket_status IN ?", user.ID, []string{"RESOLVED", "Resolved"}).Count(&resolvedTickets)
+		db.Model(&models.Ticket{}).Where("assigned_engineer = ? AND ticket_status IN ?", user.ID, []string{"CLOSED", "Closed"}).Count(&closedTickets)
 
 		// Task statistics assigned to this engineer
 		var totalTasks, inProgressTasks, reviewPendingTasks, completedTasks int64
 
-		db.Model(&models.Task{}).Where("assigned_user_id = ?", user.ID).Count(&totalTasks)
-		db.Model(&models.Task{}).Where("assigned_user_id = ? AND task_status IN ?", user.ID, []string{"Not Started", "TODO", "In Progress", "IN PROGRESS", "IN_PROGRESS", "ON_HOLD", "Deferred"}).Count(&inProgressTasks)
-		db.Model(&models.Task{}).Where("assigned_user_id = ? AND task_status IN ?", user.ID, []string{"Review Pending", "REVIEW_PENDING", "Under Review", "Manager Review", "Pending Approval", "Waiting Verification"}).Count(&reviewPendingTasks)
-		db.Model(&models.Task{}).Where("assigned_user_id = ? AND task_status IN ?", user.ID, []string{"Completed", "COMPLETED", "ACCEPTED"}).Count(&completedTasks)
+		db.Model(&models.Task{}).Where("assigned_to = ?", user.ID).Count(&totalTasks)
+		db.Model(&models.Task{}).Where("assigned_to = ? AND task_status IN ?", user.ID, []string{"Not Started", "TODO", "In Progress", "IN PROGRESS", "IN_PROGRESS", "ON_HOLD", "Deferred"}).Count(&inProgressTasks)
+		db.Model(&models.Task{}).Where("assigned_to = ? AND task_status IN ?", user.ID, []string{"Review Pending", "REVIEW_PENDING", "Under Review", "Manager Review", "Pending Approval", "Waiting Verification"}).Count(&reviewPendingTasks)
+		db.Model(&models.Task{}).Where("assigned_to = ? AND task_status IN ?", user.ID, []string{"Completed", "COMPLETED", "ACCEPTED"}).Count(&completedTasks)
 
 		c.JSON(http.StatusOK, gin.H{
 			"total_tickets":        totalTickets,

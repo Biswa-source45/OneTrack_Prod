@@ -182,11 +182,24 @@
     <!-- Mark as Completed Section -->
     <div class="border-t border-gray-200 p-6 bg-gray-50">
       <div class="flex items-center justify-end">
+        <span v-if="isTaskCompleted" class="px-4 py-2 bg-green-100 text-green-800 rounded-lg font-medium text-sm flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          Task Verified & Completed by Manager
+        </span>
+        <span v-else-if="isTaskInReview" class="px-4 py-2 bg-purple-100 text-purple-800 rounded-lg font-medium text-sm flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Submitted for Manager Verification
+        </span>
         <button
+          v-else
           @click="markCompleted"
-          class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm font-medium"
         >
-          Mark as Completed
+          Submit for Manager Verification
         </button>
       </div>
     </div>
@@ -216,6 +229,17 @@ const emit = defineEmits(['comment-added', 'mark-completed'])
 
 // Auth store
 const auth = useAuthStore()
+
+// Check task status flags
+const isTaskCompleted = computed(() => {
+  const s = (props.task?.task_status || '').toUpperCase()
+  return s === 'COMPLETED' || s === 'ACCEPTED'
+})
+
+const isTaskInReview = computed(() => {
+  const s = (props.task?.task_status || '').toUpperCase()
+  return s.includes('REVIEW') || s.includes('PENDING') || s.includes('VERIFICATION')
+})
 
 // Check if current user can add comments
 const canAddComments = computed(() => {

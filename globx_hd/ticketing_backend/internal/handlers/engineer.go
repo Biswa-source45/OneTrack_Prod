@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Chinmay-Globx/ticketing-backend/internal/models"
@@ -191,6 +192,15 @@ func EngineerChangeTaskStatusHandler(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		oldStatus := task.TaskStatus
+		currUpper := strings.ToUpper(strings.TrimSpace(oldStatus))
+		if currUpper == "COMPLETED" || currUpper == "ACCEPTED" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Task has already been completed and verified by manager. Status cannot be modified."})
+			return
+		}
+		if currUpper == "REVIEW PENDING" || currUpper == "REVIEW_PENDING" || currUpper == "UNDER REVIEW" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Task is currently pending manager verification. Status cannot be modified."})
+			return
+		}
 
 		// If engineer selects Completed/COMPLETED, enforce manager verification flow by setting status to "Review Pending"
 		targetStatus := input.Status

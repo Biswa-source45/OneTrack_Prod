@@ -74,8 +74,16 @@
               <div>
                 <span class="text-xs text-gray-500 uppercase tracking-wide">Status</span>
                 <div class="mt-1">
+                  <!-- Read-only status if completed or in review, otherwise editable -->
+                  <span v-if="isTaskCompleted" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    ✓ Completed & Verified
+                  </span>
+                  <span v-else-if="isTaskInReview" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    ⏳ Verification Pending
+                  </span>
                   <!-- Inline editable status for engineers -->
                   <InlineEditDropdown
+                    v-else
                     :model-value="task.task_status"
                     :options="statusOptions"
                     option-value="value"
@@ -188,6 +196,16 @@ const notification = ref({
 
 // Computed properties
 const taskId = computed(() => route.params.id)
+
+const isTaskCompleted = computed(() => {
+  const s = (task.value?.task_status || '').toUpperCase()
+  return s === 'COMPLETED' || s === 'ACCEPTED'
+})
+
+const isTaskInReview = computed(() => {
+  const s = (task.value?.task_status || '').toUpperCase()
+  return s.includes('REVIEW') || s.includes('PENDING') || s.includes('VERIFICATION')
+})
 
 // Status options for engineers
 const statusOptions = [
