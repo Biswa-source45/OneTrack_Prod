@@ -192,11 +192,20 @@ func EngineerChangeTaskStatusHandler(db *gorm.DB) gin.HandlerFunc {
 
 		oldStatus := task.TaskStatus
 
+		// If engineer selects Completed/COMPLETED, enforce manager verification flow by setting status to "Review Pending"
+		targetStatus := input.Status
+		if targetStatus == "Completed" || targetStatus == "COMPLETED" {
+			targetStatus = "Review Pending"
+		}
+
 		// Update task status
-		if err := db.Model(&task).Update("task_status", input.Status).Error; err != nil {
+		if err := db.Model(&task).Update("task_status", targetStatus).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not update status"})
 			return
 		}
+
+		// Update local task object status for response
+		task.TaskStatus = targetStatus
 
 		// Audit log for engineer task status change
 		auditService := services.NewAuditService(db)
@@ -206,9 +215,9 @@ func EngineerChangeTaskStatusHandler(db *gorm.DB) gin.HandlerFunc {
 			models.EntityTypeTask,
 			&task.ID,
 			task.Subject,
-			fmt.Sprintf("Engineer changed task status: %s -> %s", oldStatus, input.Status),
+			fmt.Sprintf("Engineer changed task status: %s -> %s", oldStatus, targetStatus),
 			map[string]string{"status": oldStatus},
-			map[string]string{"status": input.Status},
+			map[string]string{"status": targetStatus},
 		)
 
 		// Send notifications for task status change

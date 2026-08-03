@@ -98,15 +98,115 @@ func ManagerDashboardStatsHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
+		// --- TASK STATISTICS ---
+		// Total tasks count
+		var totalTasksCount int64
+		baseTaskQuery := db.Model(&models.Task{})
+		if hasDateFilter {
+			baseTaskQuery = baseTaskQuery.Where("created_at >= ? AND created_at < ?", startDate, endDate)
+		}
+		if err := baseTaskQuery.Count(&totalTasksCount).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch total tasks count"})
+			return
+		}
+
+		// Not completed tasks count (In Progress / Not Started / TODO / ON_HOLD / Deferred / Waiting)
+		var notCompletedTasksCount int64
+		notCompletedTaskQuery := db.Model(&models.Task{})
+		if hasDateFilter {
+			notCompletedTaskQuery = notCompletedTaskQuery.Where("created_at >= ? AND created_at < ?", startDate, endDate)
+		}
+		if err := notCompletedTaskQuery.Where("task_status IN ?", []string{
+			"Not Started", "TODO", "In Progress", "IN PROGRESS", "IN_PROGRESS", "ON_HOLD", "Deferred", "Waiting on someone else",
+		}).Count(&notCompletedTasksCount).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch not completed tasks count"})
+			return
+		}
+
+		// Review Pending / Waiting Verification tasks count
+		var reviewPendingTasksCount int64
+		reviewPendingTaskQuery := db.Model(&models.Task{})
+		if hasDateFilter {
+			reviewPendingTaskQuery = reviewPendingTaskQuery.Where("created_at >= ? AND created_at < ?", startDate, endDate)
+		}
+		if err := reviewPendingTaskQuery.Where("task_status IN ?", []string{
+			"Review Pending", "REVIEW_PENDING", "Under Review", "Manager Review", "Pending Approval", "Waiting Verification",
+		}).Count(&reviewPendingTasksCount).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch review pending tasks count"})
+			return
+		}
+
+		// Completed tasks count
+		var completedTasksCount int64
+		completedTaskQuery := db.Model(&models.Task{})
+		if hasDateFilter {
+			completedTaskQuery = completedTaskQuery.Where("created_at >= ? AND created_at < ?", startDate, endDate)
+		}
+		if err := completedTaskQuery.Where("task_status IN ?", []string{
+			"Completed", "COMPLETED", "Accepted",
+		}).Count(&completedTasksCount).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch completed tasks count"})
+			return
+		}
+
 		// Return statistics
 		c.JSON(http.StatusOK, gin.H{
-			"total_tickets":       totalCount,
-			"open_tickets":        openCount,
-			"closed_tickets":      closedCount,
-			"in_progress_tickets": inProgressCount,
-			"resolved_tickets":    resolvedCount,
-			"month":               monthParam,
-			"year":                yearParam,
+			"total_tickets":        totalCount,
+			"open_tickets":         openCount,
+			"closed_tickets":       closedCount,
+			"in_progress_tickets":  inProgressCount,
+			"resolved_tickets":     resolvedCount,
+			"total_tasks":          totalTasksCount,
+			"not_completed_tasks":  notCompletedTasksCount,
+			"review_pending_tasks": reviewPendingTasksCount,
+			"completed_tasks":      completedTasksCount,
+			"month":                monthParam,
+			"year":                 yearParam,
+		})
+	}
+}
+
+// EngineerDashboardStatsHandler returns ticket and task statistics for engineer dashboard
+func EngineerDashboardStatsHandler(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userVal, exists := c.Get("user")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			return
+		}
+		user, ok := userVal.(models.User)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user context"})
+			return
+		}
+
+		// Ticket statistics assigned to this engineer
+		var totalTickets, openTickets, inProgressTickets, resolvedTickets, closedTickets int64
+
+		db.Model(&models.Ticket{}).Where("assigned_engineer_id = ?", user.ID).Count(&totalTickets)
+		db.Model(&models.Ticket{}).Where("assigned_engineer_id = ? AND ticket_status IN ?", user.ID, []string{"OPEN", "Open"}).Count(&openTickets)
+		db.Model(&models.Ticket{}).Where("assigned_engineer_id = ? AND ticket_status IN ?", user.ID, []string{"IN PROGRESS", "IN_PROGRESS", "In Progress"}).Count(&inProgressTickets)
+		db.Model(&models.Ticket{}).Where("assigned_engineer_id = ? AND ticket_status IN ?", user.ID, []string{"RESOLVED", "Resolved"}).Count(&resolvedTickets)
+		db.Model(&models.Ticket{}).Where("assigned_engineer_id = ? AND ticket_status IN ?", user.ID, []string{"CLOSED", "Closed"}).Count(&closedTickets)
+
+		// Task statistics assigned to this engineer
+		var totalTasks, inProgressTasks, reviewPendingTasks, completedTasks int64
+
+		db.Model(&models.Task{}).Where("assigned_user_id = ?", user.ID).Count(&totalTasks)
+		db.Model(&models.Task{}).Where("assigned_user_id = ? AND task_status IN ?", user.ID, []string{"Not Started", "TODO", "In Progress", "IN PROGRESS", "IN_PROGRESS", "ON_HOLD", "Deferred"}).Count(&inProgressTasks)
+		db.Model(&models.Task{}).Where("assigned_user_id = ? AND task_status IN ?", user.ID, []string{"Review Pending", "REVIEW_PENDING", "Under Review", "Manager Review", "Pending Approval", "Waiting Verification"}).Count(&reviewPendingTasks)
+		db.Model(&models.Task{}).Where("assigned_user_id = ? AND task_status IN ?", user.ID, []string{"Completed", "COMPLETED", "ACCEPTED"}).Count(&completedTasks)
+
+		c.JSON(http.StatusOK, gin.H{
+			"total_tickets":        totalTickets,
+			"open_tickets":         openTickets,
+			"in_progress_tickets":  inProgressTickets,
+			"resolved_tickets":     resolvedTickets,
+			"closed_tickets":       closedTickets,
+			"total_tasks":          totalTasks,
+			"in_progress_tasks":    inProgressTasks,
+			"review_pending_tasks": reviewPendingTasks,
+			"completed_tasks":      completedTasks,
 		})
 	}
 }

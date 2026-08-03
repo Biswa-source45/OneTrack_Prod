@@ -186,6 +186,7 @@ func SetupRouter(db *gorm.DB, hub *ws.Hub) *gin.Engine {
 	r.PATCH("/engineer/tickets/:id/status", handlers.AuthMiddleware(db), handlers.EngineerChangeStatusHandler(db))
 
 	// Engineer task routes
+	r.GET("/engineer/dashboard-stats", handlers.AuthMiddleware(db), handlers.EngineerDashboardStatsHandler(db))
 	r.GET("/engineer/tasks", handlers.AuthMiddleware(db), handlers.EngineerListTasksHandler(db))
 	r.GET("/engineer/tasks/:id", handlers.AuthMiddleware(db), handlers.EngineerGetTaskHandler(db))
 	r.PATCH("/engineer/tasks/:id/status", handlers.AuthMiddleware(db), handlers.EngineerChangeTaskStatusHandler(db))

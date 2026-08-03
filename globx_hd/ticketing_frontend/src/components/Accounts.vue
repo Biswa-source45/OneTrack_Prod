@@ -25,7 +25,7 @@
     <Modal :open="openCreate || openEdit" :title="openEdit ? 'Edit Account' : 'Add Account'" @close="closeForm">
       <FormLayout @submit="save">
         <FormField label="Account Name"><input v-model="form.account_name" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
-        <FormField label="Account Owner(Globx)"><input v-model="form.account_owner" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
+        <FormField label="Globx Account Owner"><input v-model="form.account_owner" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
         <FormField label="Address"><input v-model="form.address" class="w-full border border-blue-200 rounded px-3 py-2" /></FormField>
         <template #actions>
           <Button variant="secondary" type="button" @click="closeForm">Cancel</Button>
@@ -52,7 +52,7 @@ import { fetchAccounts, createAccount, updateAccount, deleteAccount } from '../a
 const rows = ref([]);
 const columns = [
   { key: 'account_name', label: 'Account Name' },
-  { key: 'account_owner', label: 'Owner' },
+  { key: 'account_owner', label: 'Globx Account Owner' },
   { key: 'customer_code', label: 'Customer Code' },
   { key: 'address', label: 'Address' },
 ];

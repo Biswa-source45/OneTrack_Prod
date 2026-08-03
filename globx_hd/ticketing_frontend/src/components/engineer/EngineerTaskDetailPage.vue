@@ -189,26 +189,24 @@ const notification = ref({
 // Computed properties
 const taskId = computed(() => route.params.id)
 
-// Status options for engineers (same as manager)
+// Status options for engineers
 const statusOptions = [
   { value: 'TODO', label: 'To Do' },
   { value: 'IN PROGRESS', label: 'In Progress' },
-  { value: 'COMPLETED', label: 'Completed' },
-  { value: 'ON_HOLD', label: 'On Hold' },
-  { value: 'CANCELLED', label: 'Cancelled' }
+  { value: 'COMPLETED', label: 'Submit for Manager Verification' },
+  { value: 'ON_HOLD', label: 'On Hold' }
 ]
 
-// Badge styling functions (same as manager)
+// Badge styling functions
 const getStatusBadgeClass = (status) => {
-  switch (status) {
-    case 'TODO': return 'bg-gray-100 text-gray-800'
-    case 'IN PROGRESS':
-    case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800'
-    case 'COMPLETED': return 'bg-green-100 text-green-800'
-    case 'ON_HOLD': return 'bg-yellow-100 text-yellow-800'
-    case 'CANCELLED': return 'bg-red-100 text-red-800'
-    default: return 'bg-gray-100 text-gray-800'
-  }
+  const s = (status || '').toUpperCase()
+  if (s === 'TODO' || s === 'NOT STARTED') return 'bg-gray-100 text-gray-800'
+  if (s === 'IN PROGRESS' || s === 'IN_PROGRESS') return 'bg-blue-100 text-blue-800'
+  if (s.includes('REVIEW') || s.includes('PENDING') || s.includes('VERIFICATION')) return 'bg-purple-100 text-purple-800'
+  if (s === 'COMPLETED' || s === 'ACCEPTED') return 'bg-green-100 text-green-800'
+  if (s === 'ON_HOLD' || s === 'DEFERRED') return 'bg-yellow-100 text-yellow-800'
+  if (s === 'CANCELLED') return 'bg-red-100 text-red-800'
+  return 'bg-gray-100 text-gray-800'
 }
 
 const getPriorityBadgeClass = (priority) => {
@@ -249,29 +247,33 @@ const loadTaskData = async () => {
   }
 }
 
-// Handle status change (engineers can change status)
+// Handle status change (engineers trigger verification when completing)
 const handleStatusChange = async (newStatus) => {
   if (!task.value || !newStatus) return
   
   try {
     await changeEngineerTaskStatus(task.value.id, newStatus)
-    task.value.task_status = newStatus
-    showNotification('success', 'Status Updated', 'Task status has been updated successfully.')
+    if (newStatus === 'COMPLETED' || newStatus === 'Completed') {
+      task.value.task_status = 'Review Pending'
+      showNotification('info', 'Submitted for Verification', 'Task has been submitted to Manager for final verification & approval.')
+    } else {
+      task.value.task_status = newStatus
+      showNotification('success', 'Status Updated', 'Task status has been updated successfully.')
+    }
   } catch (err) {
     console.error('Failed to update status:', err)
     showNotification('error', 'Update Failed', 'Failed to update task status. Please try again.')
   }
 }
 
-// Event handlers (same as manager)
+// Event handlers
 const handleCommentAdded = () => {
   loadTaskData() // Refresh task data
 }
 
-const handleMarkCompleted = () => {
+const handleMarkCompleted = async () => {
   if (task.value) {
-    task.value.task_status = 'COMPLETED'
-    showNotification('success', 'Task Completed', 'Task has been marked as completed.')
+    await handleStatusChange('COMPLETED')
   }
 }
 

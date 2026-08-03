@@ -13,11 +13,12 @@
         />
       </FormField>
       
-      <FormField label="Account Owner">
+      <FormField label="Globx Account Owner">
         <input 
           v-model="form.account_owner" 
-          class="w-full border border-blue-200 rounded px-3 py-2"
-          placeholder="Enter account owner name"
+          type="text" 
+          placeholder="Enter Globx account owner name" 
+          class="w-full border border-blue-200 rounded px-3 py-2 text-blue-900 focus:outline-none focus:border-blue-500" 
         />
       </FormField>
       

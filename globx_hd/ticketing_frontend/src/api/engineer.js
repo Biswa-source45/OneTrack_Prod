@@ -36,3 +36,9 @@ export async function changeEngineerTaskStatus(taskId, status) {
   const res = await api.patch(`/engineer/tasks/${taskId}/status`, { status });
   return res.data;
 }
+
+// Fetch dashboard stats for engineer
+export async function fetchEngineerDashboardStats() {
+  const res = await api.get('/engineer/dashboard-stats');
+  return res.data;
+}

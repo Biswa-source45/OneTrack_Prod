@@ -35,7 +35,7 @@
         </div>
 
         <!-- Account Owner (Auto-filled) - Only show if account is selected -->
-        <FormField v-if="form.selectedAccount" label="Account Owner">
+        <FormField v-if="form.selectedAccount" label="Globx Account Owner">
           <input 
             v-model="form.accountOwner" 
             type="text" 

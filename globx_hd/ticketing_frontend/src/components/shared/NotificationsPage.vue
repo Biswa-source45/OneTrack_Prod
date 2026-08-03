@@ -243,9 +243,11 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useNotificationStore } from '../../stores/notifications';
+import { useAuthStore } from '../../stores/auth';
 
 const router = useRouter();
 const notificationStore = useNotificationStore();
+const authStore = useAuthStore();
 
 // Local state
 const filters = ref({
@@ -312,15 +314,26 @@ const loadMore = async () => {
 
 const navigateToRelatedItem = (notification) => {
   try {
-    const metadata = typeof notification.metadata === 'string' 
-      ? JSON.parse(notification.metadata) 
-      : notification.metadata || {};
-    
-    // Navigate based on related type
-    if (notification.related_type === 'ticket' && notification.related_id) {
-      router.push(`/tickets/${notification.related_id}`);
-    } else if (notification.related_type === 'task' && notification.related_id) {
-      router.push(`/tasks/${notification.related_id}`);
+    const role = (authStore.userType || '').toLowerCase().trim();
+    const relatedType = (notification.related_type || '').toLowerCase();
+    const relatedId = notification.related_id;
+
+    if (!relatedId) return;
+
+    if (relatedType === 'ticket') {
+      if (role === 'engineer') {
+        router.push(`/engineer/tickets/${relatedId}`);
+      } else if (role === 'contact') {
+        router.push(`/contacts/my-tickets/${relatedId}`);
+      } else {
+        router.push(`/manager/tickets/${relatedId}`);
+      }
+    } else if (relatedType === 'task') {
+      if (role === 'engineer') {
+        router.push(`/engineer/tasks/${relatedId}`);
+      } else {
+        router.push(`/manager/tasks/${relatedId}`);
+      }
     }
   } catch (error) {
     console.error('Error navigating to related item:', error);
