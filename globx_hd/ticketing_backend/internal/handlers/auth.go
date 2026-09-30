@@ -51,7 +51,8 @@ func AuthMiddleware(db *gorm.DB) gin.HandlerFunc {
 		id := uint(idFloat)
 		if userType == "user" {
 			var user models.User
-			if err := db.First(&user, id).Error; err != nil {
+			// Role is preloaded so permission checks (isManagerOrAbove) need no extra query.
+			if err := db.Preload("Role").First(&user, id).Error; err != nil {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
 				return
 			}

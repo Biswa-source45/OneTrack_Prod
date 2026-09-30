@@ -356,7 +356,7 @@ const canAddComments = computed(() => {
 
 // Check if current user can close/reopen tickets (only managers, not engineers)
 const canCloseTicket = computed(() => {
-  return auth.userType === 'manager'
+  return auth.hasManagerAccess
 })
 
 // State

@@ -82,6 +82,9 @@ const router = createRouter({
         
         // Notifications (available to all authenticated users)
         { path: 'notifications', component: () => import('../components/shared/NotificationsPage.vue') },
+        // Feedback: everyone submits; Super Admin triages
+        { path: 'feedback', component: () => import('../components/feedback/FeedbackPage.vue') },
+        { path: 'feedback/inbox', component: () => import('../components/feedback/FeedbackInbox.vue'), meta: { requiresRole: 'superadmin' } },
       ],
     },
     { path: '/:pathMatch(.*)*', redirect: '/login/user' },
@@ -117,6 +120,7 @@ router.beforeEach((to, from, next) => {
       if (role === 'contact') return next('/contacts/my-tickets');
       if (role === 'manager') return next('/manager/dashboard');
       if (role === 'engineer') return next('/engineer/tickets');
+      if (role === 'superadmin') return next('/manager/dashboard');
     }
     return next();
   }
@@ -133,12 +137,15 @@ router.beforeEach((to, from, next) => {
 
   // Role-based route protection
   const requiredRole = to.meta && to.meta.requiresRole;
-  if (requiredRole && role !== requiredRole) {
+  // Super Admin may open every manager page too.
+  const allowed = !requiredRole || role === requiredRole || (role === 'superadmin' && requiredRole === 'manager');
+  if (!allowed) {
     // Redirect to correct landing page
     if (role === 'admin') return next('/dashboard');
     if (role === 'contact') return next('/contacts/my-tickets');
     if (role === 'manager') return next('/manager/dashboard');
     if (role === 'engineer') return next('/engineer/tickets');
+    if (role === 'superadmin') return next('/manager/dashboard');
     return next('/login/user');
   }
 

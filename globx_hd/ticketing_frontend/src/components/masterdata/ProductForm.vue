@@ -57,7 +57,7 @@ async function onSubmit() {
   } else {
     await createProduct({ product_name: form.product_name, product_description: form.product_description });
   }
-  const prefix = authStore.userType === 'manager' ? '/manager' : '';
+  const prefix = authStore.hasManagerAccess ? '/manager' : '';
   router.push(`${prefix}/master-data/products`);
 }
 function cancel() { router.back(); }

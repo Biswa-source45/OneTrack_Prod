@@ -301,7 +301,7 @@ func UpdateTicketCall(db *gorm.DB) gin.HandlerFunc {
 		userVal, exists = c.Get("user")
 		if exists {
 			if user, ok := userVal.(models.User); ok {
-				if call.ScheduledBy != userID && user.RoleID != 2 { // Not scheduler and not manager
+				if call.ScheduledBy != userID && !isManagerOrAbove(user) { // Not scheduler and not manager
 					c.JSON(http.StatusForbidden, gin.H{"error": "not authorized to edit this call"})
 					return
 				}
@@ -458,7 +458,7 @@ func CancelTicketCall(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		// Check if user scheduled the call or is a manager
-		if call.ScheduledBy != userID && user.RoleID != 2 { // Not scheduler and not manager
+		if call.ScheduledBy != userID && !isManagerOrAbove(user) { // Not scheduler and not manager
 			c.JSON(http.StatusForbidden, gin.H{"error": "not authorized to cancel this call"})
 			return
 		}
@@ -510,7 +510,7 @@ func CloseTicketCall(db *gorm.DB) gin.HandlerFunc {
 		userID := user.ID
 
 		// Check if user is a manager (role_id = 2)
-		if user.RoleID != 2 {
+		if !isManagerOrAbove(user) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "only managers can close calls"})
 			return
 		}
@@ -783,7 +783,7 @@ func DeleteCallAttachment(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		// Check if user uploaded the file or is a manager
-		if attachment.UploadedBy != user.ID && user.RoleID != 2 {
+		if attachment.UploadedBy != user.ID && !isManagerOrAbove(user) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "not authorized to delete this attachment"})
 			return
 		}

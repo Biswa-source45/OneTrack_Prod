@@ -198,6 +198,13 @@ func SetupRouter(db *gorm.DB, hub *ws.Hub) *gin.Engine {
 	r.PATCH("/notifications/mark-all-read", handlers.AuthMiddleware(db), handlers.MarkAllNotificationsReadHandler(db))
 	r.DELETE("/notifications/:id", handlers.AuthMiddleware(db), handlers.DeleteNotificationHandler(db))
 
+	// Feedback: any logged-in user submits; list-all and status changes are superadmin-only (checked in the handler)
+	r.POST("/feedback", handlers.AuthMiddleware(db), handlers.CreateFeedback(db))
+	r.GET("/feedback/mine", handlers.AuthMiddleware(db), handlers.ListMyFeedback(db))
+	r.GET("/feedback/:id/image", handlers.AuthMiddleware(db), handlers.GetFeedbackImage(db))
+	r.GET("/feedback", handlers.AuthMiddleware(db), handlers.ListAllFeedback(db))
+	r.PATCH("/feedback/:id/status", handlers.AuthMiddleware(db), handlers.UpdateFeedbackStatus(db))
+
 	// Audit Log routes (Manager only)
 	r.GET("/manager/audit-logs", handlers.AuthMiddleware(db), handlers.GetAuditLogsHandler(db))
 	r.GET("/manager/audit-logs/stats", handlers.AuthMiddleware(db), handlers.GetAuditLogStatsHandler(db))

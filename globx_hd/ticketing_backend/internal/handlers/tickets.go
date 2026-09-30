@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Chinmay-Globx/ticketing-backend/internal/models"
@@ -282,7 +283,17 @@ func IsManager(c *gin.Context) bool {
 	if !ok {
 		return false
 	}
-	return user.RoleID == 2
+	return isManagerOrAbove(user)
+}
+
+// isSuperAdminUser needs user.Role loaded (AuthMiddleware preloads it).
+func isSuperAdminUser(u models.User) bool {
+	return strings.EqualFold(strings.TrimSpace(u.Role.RoleName), "superadmin")
+}
+
+// isManagerOrAbove is the single manager-permission rule: superadmin inherits every manager permission.
+func isManagerOrAbove(u models.User) bool {
+	return u.RoleID == 2 || isSuperAdminUser(u)
 }
 
 // Manager: List all tickets

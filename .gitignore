@@ -1,0 +1,5 @@
+# Code-analysis output (graphify) — local only
+graphify-out/
+
+# Locally built binaries (already-tracked ones are unaffected)
+*.exe

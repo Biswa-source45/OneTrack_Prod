@@ -60,11 +60,11 @@ async function load() {
 }
 
 function goCreate() {
-  const prefix = authStore.userType === 'manager' ? '/manager' : '';
+  const prefix = authStore.hasManagerAccess ? '/manager' : '';
   router.push(`${prefix}/master-data/products/new`);
 }
 function goEdit(row) {
-  const prefix = authStore.userType === 'manager' ? '/manager' : '';
+  const prefix = authStore.hasManagerAccess ? '/manager' : '';
   router.push(`${prefix}/master-data/products/${row.id}/edit`);
 }
 

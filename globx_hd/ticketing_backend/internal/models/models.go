@@ -369,6 +369,29 @@ const (
 	NotificationSystemUpdate      = "system.update"
 )
 
+// Feedback is an issue report any logged-in user can raise; triaged by superadmin.
+type Feedback struct {
+	ID            uint      `gorm:"primaryKey" json:"id"`
+	ReporterID    uint      `gorm:"not null" json:"reporter_id"`
+	ReporterType  string    `gorm:"not null;size:20" json:"reporter_type"` // "user" or "contact"
+	ReporterName  string    `gorm:"not null;size:255" json:"reporter_name"`
+	ReporterEmail string    `gorm:"size:255" json:"reporter_email"`
+	Title         string    `gorm:"not null;size:200" json:"title"`
+	Description   string    `gorm:"type:text;not null" json:"description"`
+	PageURL       string    `gorm:"size:500" json:"page_url"`
+	ImagePath     string    `gorm:"size:500" json:"image_path"`
+	Status        string    `gorm:"not null;default:OPEN;size:20" json:"status"`
+	CreatedAt     time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt     time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+}
+
+// Feedback statuses
+const (
+	FeedbackOpen       = "OPEN"
+	FeedbackInProgress = "IN PROGRESS"
+	FeedbackCompleted  = "COMPLETED"
+)
+
 // DumpedQuery model for failed email-to-ticket attempts
 type DumpedQuery struct {
 	ID              uint      `gorm:"primaryKey" json:"id"`

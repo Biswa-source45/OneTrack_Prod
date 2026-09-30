@@ -139,7 +139,7 @@ func GetTicketComments(db *gorm.DB) gin.HandlerFunc {
 		// Filter internal comments for non-managers
 		userVal, exists := c.Get("user")
 		if exists {
-			if user, ok := userVal.(models.User); ok && user.RoleID != 2 { // Not a manager
+			if user, ok := userVal.(models.User); ok && !isManagerOrAbove(user) { // Not a manager
 				query = query.Where("is_internal = ?", false)
 			}
 		}
@@ -153,7 +153,7 @@ func GetTicketComments(db *gorm.DB) gin.HandlerFunc {
 		var total int64
 		countQuery := db.Model(&models.TicketComment{}).Where("ticket_id = ?", ticketID)
 		if exists {
-			if user, ok := userVal.(models.User); ok && user.RoleID != 2 {
+			if user, ok := userVal.(models.User); ok && !isManagerOrAbove(user) {
 				countQuery = countQuery.Where("is_internal = ?", false)
 			}
 		}
@@ -217,7 +217,7 @@ func UpdateTicketComment(db *gorm.DB) gin.HandlerFunc {
 		// Check if user owns the comment or is a manager
 		if exists {
 			if user, ok := userVal.(models.User); ok {
-				if comment.UserID != userID && user.RoleID != 2 { // Not owner and not manager
+				if comment.UserID != userID && !isManagerOrAbove(user) { // Not owner and not manager
 					c.JSON(http.StatusForbidden, gin.H{"error": "not authorized to edit this comment"})
 					return
 				}
@@ -290,7 +290,7 @@ func DeleteTicketComment(db *gorm.DB) gin.HandlerFunc {
 		// Check if user owns the comment or is a manager
 		if exists {
 			if user, ok := userVal.(models.User); ok {
-				if comment.UserID != userID && user.RoleID != 2 { // Not owner and not manager
+				if comment.UserID != userID && !isManagerOrAbove(user) { // Not owner and not manager
 					c.JSON(http.StatusForbidden, gin.H{"error": "not authorized to delete this comment"})
 					return
 				}

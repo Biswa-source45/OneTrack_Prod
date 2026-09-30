@@ -144,6 +144,12 @@ const (
 	AuditSystemInitialized   = "AUDIT_SYSTEM_INITIALIZED"
 )
 
+// Audit Action Constants - Feedback
+const (
+	AuditFeedbackCreated       = "FEEDBACK_CREATED"
+	AuditFeedbackStatusChanged = "FEEDBACK_STATUS_CHANGED"
+)
+
 // Entity Type Constants
 const (
 	EntityTypeUser         = "user"
@@ -160,6 +166,7 @@ const (
 	EntityTypeCall         = "call"
 	EntityTypeApproval     = "approval"
 	EntityTypeDumpedQuery  = "dumped_query"
+	EntityTypeFeedback     = "feedback"
 	EntityTypeSystem       = "system"
 )
 

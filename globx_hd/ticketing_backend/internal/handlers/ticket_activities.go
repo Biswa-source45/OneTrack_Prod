@@ -141,7 +141,7 @@ func GetTicketFullDetails(db *gorm.DB) gin.HandlerFunc {
 		// Filter internal comments for non-managers
 		userVal, exists := c.Get("user")
 		if exists {
-			if user, ok := userVal.(models.User); ok && user.RoleID != 2 { // Not a manager
+			if user, ok := userVal.(models.User); ok && !isManagerOrAbove(user) { // Not a manager
 				commentQuery = commentQuery.Where("is_internal = ?", false)
 			}
 		}

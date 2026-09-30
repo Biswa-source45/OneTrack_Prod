@@ -39,7 +39,7 @@
 import { ref, computed, watch } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { BuildingOffice2Icon, UserIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline';
-import { PlusCircleIcon, TicketIcon, ClipboardDocumentListIcon, HomeIcon, UsersIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
+import { PlusCircleIcon, TicketIcon, ClipboardDocumentListIcon, HomeIcon, UsersIcon, DocumentTextIcon, ChatBubbleLeftEllipsisIcon, InboxIcon } from '@heroicons/vue/24/outline';
 const props = defineProps({ sidebarOpen: Boolean });
 const masterDataOpen = ref(false);
 function toggleMasterData() {
@@ -49,6 +49,7 @@ watch(() => props.sidebarOpen, (val) => {
   if (!val) masterDataOpen.value = false;
 });
 const auth = useAuthStore();
+const feedbackLink = { label: 'Feedback', path: '/feedback', icon: ChatBubbleLeftEllipsisIcon };
 const adminLinks = [
   { label: 'Accounts', path: '/accounts', icon: BuildingOffice2Icon },
   { label: 'Contacts', path: '/contacts', icon: UserIcon },
@@ -60,6 +61,7 @@ const adminLinks = [
     { label: 'Products', path: '/master-data/products' },
     { label: 'Issues', path: '/master-data/issues' },
   ] },
+  feedbackLink,
 ];
 const managerLinks = [
   { label: 'Dashboard', path: '/dashboard', icon: HomeIcon },
@@ -80,21 +82,31 @@ const managerLinks = [
     { label: 'Issues', path: '/manager/master-data/issues' },
   ] },
   { label: 'Audit Logs', path: '/manager/audit-logs', icon: DocumentTextIcon },
+  feedbackLink,
 ];
 const engineerLinks = [
   { label: 'Dashboard', path: '/dashboard', icon: HomeIcon },
   { label: 'Raise Ticket', path: '/engineer/raise-ticket', icon: PlusCircleIcon },
   { label: 'Assigned Tickets', path: '/engineer/tickets', icon: TicketIcon },
   { label: 'Assigned Tasks', path: '/engineer/tasks', icon: ClipboardDocumentListIcon },
+  feedbackLink,
 ];
 const contactLinks = [
   { label: 'Raise Ticket', path: '/contacts/raise-ticket', icon: PlusCircleIcon },
   { label: 'My Tickets', path: '/contacts/my-tickets', icon: TicketIcon },
+  feedbackLink,
+];
+// Super Admin: everything a manager sees, plus the Feedback Inbox (they receive feedback, not submit it).
+const superadminLinks = [
+  { label: 'Dashboard', path: '/manager/dashboard', icon: HomeIcon },
+  { label: 'Feedback Inbox', path: '/feedback/inbox', icon: InboxIcon },
+  ...managerLinks.filter(l => l.path !== '/dashboard' && l !== feedbackLink),
 ];
 const navLinks = computed(() => {
   if (auth.userType === 'admin') return adminLinks;
   if (auth.userType === 'manager') return managerLinks;
   if (auth.userType === 'engineer') return engineerLinks;
+  if (auth.userType === 'superadmin') return superadminLinks;
   return contactLinks;
 });
 </script>

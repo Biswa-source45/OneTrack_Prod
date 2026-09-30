@@ -8,6 +8,10 @@ export const useAuthStore = defineStore('auth', {
     firstLogin: false,
     user: null,
   }),
+  getters: {
+    // Super Admin inherits every manager permission and page.
+    hasManagerAccess: (s) => s.userType === 'manager' || s.userType === 'superadmin',
+  },
   actions: {
     setAuth(token, userType, firstLogin, user) {
       this.token = token;

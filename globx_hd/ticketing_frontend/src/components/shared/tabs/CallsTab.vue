@@ -331,7 +331,7 @@ const auth = useAuthStore()
 
 // Check if current user is manager (can edit call status)
 const isManager = computed(() => {
-  return auth.userType === 'manager'
+  return auth.hasManagerAccess
 })
 
 const props = defineProps({

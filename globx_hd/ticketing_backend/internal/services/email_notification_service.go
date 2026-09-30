@@ -3,6 +3,7 @@ package services
 import (
 	"crypto/tls"
 	"fmt"
+	"html"
 	"log"
 	"net/smtp"
 	"os"
@@ -235,6 +236,52 @@ func (s *EmailNotificationService) SendTicketUpdateEmail(ticket *models.Ticket, 
 		return fmt.Errorf("failed to send ticket update email: %w", err)
 	}
 	log.Printf("[EMAIL] Ticket update email sent for %s", ticket.TicketID)
+	return nil
+}
+
+// SendFeedbackEmail tells every superadmin a new feedback report arrived (+ self-CC).
+func (s *EmailNotificationService) SendFeedbackEmail(fb *models.Feedback) error {
+	var recipients []string
+	if err := s.db.Model(&models.User{}).
+		Joins("JOIN master_roles ON master_roles.id = users.role_id").
+		Where("LOWER(TRIM(master_roles.role_name)) = ?", "superadmin").
+		Pluck("users.email", &recipients).Error; err != nil {
+		return fmt.Errorf("could not look up superadmin emails: %w", err)
+	}
+	if len(recipients) == 0 {
+		log.Printf("[EMAIL] No superadmin user exists — feedback #%d mailed to support inbox only", fb.ID)
+		recipients = []string{s.emailUsername}
+	}
+
+	image := "No"
+	if fb.ImagePath != "" {
+		image = "Yes — view it in the Feedback Inbox"
+	}
+	row := func(k, v string) string {
+		return `<tr><td style="padding:8px 14px;font-size:13px;color:#475569;border-bottom:1px solid #f1f5f9;width:30%;">` + k +
+			`</td><td style="padding:8px 14px;font-size:13px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">` + html.EscapeString(v) + `</td></tr>`
+	}
+	body := `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
+<table width="620" cellpadding="0" cellspacing="0" style="margin:0 auto;background:#fff;border:1px solid #dde2e8;border-radius:6px;">
+<tr><td style="background:#1a3c6e;padding:22px 30px;color:#fff;font-size:18px;font-weight:700;">GlobX Ticketing — New Feedback #` + fmt.Sprint(fb.ID) + `</td></tr>
+<tr><td style="padding:24px 30px;">
+<p style="margin:0 0 16px;font-size:17px;color:#1e293b;font-weight:700;">` + html.EscapeString(fb.Title) + `</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;margin-bottom:18px;">` +
+		row("Reported by", fmt.Sprintf("%s <%s> (%s)", fb.ReporterName, fb.ReporterEmail, fb.ReporterType)) +
+		row("Page", fb.PageURL) +
+		row("Screenshot", image) +
+		row("Submitted", fb.CreatedAt.In(time.FixedZone("IST", 5*3600+30*60)).Format("02 Jan 2006, 03:04 PM MST")) +
+		`</table>
+<div style="background:#f8fafc;border-left:4px solid #1a3c6e;padding:12px 16px;font-size:13px;color:#334155;line-height:1.6;">` +
+		strings.ReplaceAll(html.EscapeString(fb.Description), "\n", "<br>") + `</div>
+<p style="margin:18px 0 0;font-size:12px;color:#64748b;">Log in as Super Admin → Feedback Inbox to review and update its status.</p>
+</td></tr></table></body></html>`
+
+	subject := fmt.Sprintf("[GlobX Feedback] #%d – %s", fb.ID, fb.Title)
+	if err := s.sendMail(recipients, subject, body); err != nil {
+		return fmt.Errorf("failed to send feedback email: %w", err)
+	}
+	log.Printf("[EMAIL] Feedback email sent for #%d", fb.ID)
 	return nil
 }
 
